@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RssSource {
+  id       Int       @id @default(autoincrement())
+  name     String
+  slug     String    @unique
+  feedUrl  String    @unique
+  homeUrl  String
+  isActive Boolean   @default(true)
+  articles Article[]
+}
+
+model Article {
+  id          Int       @id @default(autoincrement())
+  sourceId    Int
+  source      RssSource @relation(fields: [sourceId], references: [id])
+  guid        String    @unique
+  title       String
+  originalUrl String
+  ogImage     String?
+  publishedAt DateTime
+  feed        Feed?
+}
+
+model Feed {
+  id        Int           @id @default(autoincrement())
+  date      DateTime      @unique
+  status    FeedStatus    @default(DRAFT)
+  articleId Int?          @unique
+  article   Article?      @relation(fields: [articleId], references: [id])
+  sections  FeedSection[]
+  tags      FeedTag[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model FeedSection {
+  id     Int    @id @default(autoincrement())
+  feedId Int
+  feed   Feed   @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  order  Int
+  title  String
+  body   String @db.Text
+}
+
+model Tag {
+  id    Int       @id @default(autoincrement())
+  name  String    @unique
+  slug  String    @unique
+  color String?
+  feeds FeedTag[]
+}
+
+model FeedTag {
+  feedId Int
+  tagId  Int
+  feed   Feed @relation(fields: [feedId], references: [id])
+  tag    Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([feedId, tagId])
+}
+
+model SlackSubscriber {
+  id         Int      @id @default(autoincrement())
+  webhookUrl String   @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+enum FeedStatus {
+  DRAFT
+  PUBLISHED
+}
