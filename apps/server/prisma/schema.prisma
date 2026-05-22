@@ -61,7 +61,7 @@ model Tag {
 model FeedTag {
   feedId Int
   tagId  Int
-  feed   Feed @relation(fields: [feedId], references: [id])
+  feed   Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
   tag    Tag  @relation(fields: [tagId], references: [id])
 
   @@id([feedId, tagId])

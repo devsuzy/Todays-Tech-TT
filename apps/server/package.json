@@ -10,9 +10,9 @@
     "summarize": "ts-node src/jobs/summarize.ts",
     "publish": "ts-node src/jobs/publish.ts",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "sh -c 'set -a && . ../../.env && set +a && prisma migrate dev'",
     "db:seed": "ts-node prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "sh -c 'set -a && . ../../.env && set +a && prisma studio'"
   },
   "dependencies": {
     "@prisma/client": "^6",
