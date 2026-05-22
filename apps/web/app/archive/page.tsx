@@ -12,14 +12,13 @@ export default async function ArchivePage({
   const [feeds, tags] = await Promise.all([getFeeds(tag), getTags()]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-muted/50">
       <Header />
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">아카이브</h1>
+      <main className="max-w-2xl mx-auto px-4 py-8 md:max-w-3xl xl:max-w-5xl">
         <TagFilterBar tags={tags} selectedTag={tag} />
-        <div className="mt-6 space-y-3">
+        <div className="flex flex-col gap-6 mt-6 md:grid md:grid-cols-2 xl:grid-cols-3">
           {feeds.length === 0 ? (
-            <p className="text-muted-foreground text-center py-16">
+            <p className="text-muted-foreground py-16">
               피드가 없습니다.
             </p>
           ) : (

@@ -12,7 +12,7 @@ export function FeedSectionItem({ section }: Props) {
       <h2 className="text-xl font-bold mb-3">
         {section.order}. {section.title}
       </h2>
-      <p className="text-base leading-relaxed text-muted-foreground">
+      <p className="text-base leading-relaxed text-secondary-foreground">
         {section.body}
       </p>
     </div>
