@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { getFeed } from "@/lib/api";
 import { FeedSectionItem } from "@/components/feed-section-item";
 import { TomorrowPreview } from "@/components/tomorrow-preview";
@@ -8,6 +8,9 @@ import { Header } from "@/components/header";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatKSTDateLong, getTodayKSTString, getTomorrowKSTString } from "@/lib/date-utils";
+import { BotMessageSquare, LayoutList } from "lucide-react";
+import { ShareButton } from "@/components/share-button";
+import { BackButton } from "@/components/back-button";
 
 export default async function FeedDetailPage({
   params,
@@ -25,16 +28,15 @@ export default async function FeedDetailPage({
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        <Link
-          href="/archive"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← 아카이브
-        </Link>
+      <main className="max-w-3xl mx-auto px-4 py-8">
+
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold">{formatKSTDateLong(feed.date)}</h3>
+          <ShareButton />
+        </div>
 
         {feed.article?.ogImage && (
-          <div className="relative w-full h-56 rounded-xl overflow-hidden mt-4 mb-6">
+          <div className="relative w-full h-80 rounded-xl overflow-hidden mb-6">
             <Image
               src={feed.article.ogImage}
               alt=""
@@ -46,33 +48,20 @@ export default async function FeedDetailPage({
           </div>
         )}
 
-        <h1 className="text-3xl font-bold mt-3 mb-1">
-          {formatKSTDateLong(feed.date)}
-        </h1>
-
         {feed.article && (
-          <p className="text-sm text-muted-foreground mb-6">
-            출처:{" "}
-            <a
+          <h1 className="text-3xl font-bold mb-3 hover:underline">
+            <Link
               href={feed.article.originalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:underline"
+              className=""
             >
-              {feed.article.source.name}
-            </a>
-          </p>
+              {feed.article?.title || "No Title"}
+            </Link>
+          </h1>
         )}
 
-        <Separator className="mb-8" />
-
-        <div className="space-y-10">
-          {feed.sections.map((section) => (
-            <FeedSectionItem key={section.id} section={section} />
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-6">
           {feed.tags.map(({ tag }) => (
             <Badge
               key={tag.id}
@@ -84,7 +73,36 @@ export default async function FeedDetailPage({
           ))}
         </div>
 
+        <Separator className="mb-8" />
+
+        <div className="space-y-10">
+          <div className="space-y-2">
+            <div className="flex text-blue-500 items-center gap-2">
+              <BotMessageSquare />
+              <p className="font-semibold">AI 요약</p>
+            </div>
+            <p className="font-medium text-muted-foreground">
+              해당 글은 AI가 원문을 분석하여 핵심만 요약한 내용입니다.
+            </p>
+          </div>
+
+          {feed.sections.map((section) => (
+            <FeedSectionItem key={section.id} section={section} />
+          ))}
+        </div>
+
         <Separator className="mt-10 mb-8" />
+
+        <div className="flex items-center justify-between mb-8">
+          <BackButton />
+          <Link
+            href="/"
+            className="inline-flex h-10 items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <LayoutList className="w-4 h-4" />
+            목록보기
+          </Link>
+        </div>
 
         <TomorrowPreview tomorrowDate={tomorrowDate} />
       </main>
