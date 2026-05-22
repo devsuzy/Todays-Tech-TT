@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { formatKSTDate, toKSTDateString } from "@/lib/date-utils";
+import { TagBadge } from "@/components/tag-badge";
 import type { FeedListItem } from "@/types";
 
 interface Props {
@@ -14,7 +14,7 @@ export function FeedCard({ feed }: Props) {
 
   return (
     <Link href={`/feed/${dateStr}`}>
-      <div className="border rounded-lg overflow-hidden hover:bg-muted/40 transition-colors">
+      <div className="border rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
         {feed.article?.ogImage && (
           <div className="relative w-full h-44">
             <Image
@@ -35,14 +35,7 @@ export function FeedCard({ feed }: Props) {
           )}
           <div className="mt-3 flex flex-wrap gap-1">
             {feed.tags.map(({ tag }) => (
-              <Badge
-                key={tag.id}
-                variant="secondary"
-                className="text-xs"
-                style={{ borderColor: tag.color ?? undefined }}
-              >
-                {tag.name}
-              </Badge>
+              <TagBadge key={tag.id} name={tag.name} color={tag.color} />
             ))}
           </div>
         </div>
