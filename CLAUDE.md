@@ -37,6 +37,81 @@ web(:3000) ──fetch──▶ server(:4000)/api/v1/...
 
 ---
 
+## 데이터 아키텍처
+
+```mermaid
+erDiagram
+    %% [Enum 정의]
+    FeedStatus {
+        DRAFT DRAFT
+        PUBLISHED PUBLISHED
+    }
+
+    %% [테이블 정의]
+    RssSource {
+        Int id PK
+        String name
+        String slug UK
+        String feedUrl UK
+        String homeUrl
+        Boolean isActive
+    }
+
+    Article {
+        Int id PK
+        Int sourceId FK
+        String guid UK
+        String title
+        String originalUrl
+        DateTime publishedAt
+    }
+
+    Feed {
+        Int id PK
+        DateTime date UK
+        FeedStatus status
+        Int articleId FK "UK / Nullable"
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    FeedSection {
+        Int id PK
+        Int feedId FK
+        Int order
+        String title
+        String body
+    }
+
+    Tag {
+        Int id PK
+        String name UK
+        String slug UK
+        String color
+    }
+
+    FeedTag {
+        Int feedId PK_FK
+        Int tagId PK_FK
+    }
+
+    SlackSubscriber {
+        Int id PK
+        String webhookUrl UK
+        Boolean isActive
+        DateTime createdAt
+    }
+
+    %% [관계 설정]
+    RssSource ||--o{ Article : "has many"
+    Article ||--o| Feed : "picked as (1:1)"
+    Feed ||--|{ FeedSection : "contains (Cascade)"
+    Feed ||--o{ FeedTag : "has"
+    Tag ||--o{ FeedTag : "belongs to"
+```
+
+---
+
 ## 데이터 모델 핵심
 
 ```
