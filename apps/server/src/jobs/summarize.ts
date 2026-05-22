@@ -31,7 +31,7 @@ type SummarizeResult = {
   tags: string[]
 }
 
-export async function runSummarize() {
+export async function runSummarize(targetDate?: Date) {
   console.log('[summarize] Starting...')
 
   // Feed에 연결되지 않은 가장 최근 Article 선정
@@ -61,7 +61,7 @@ export async function runSummarize() {
   if (!content) throw new Error('Empty OpenAI response')
 
   const result = JSON.parse(content) as SummarizeResult
-  const tomorrowDate = getTomorrowKSTMidnightUTC()
+  const tomorrowDate = targetDate ?? getTomorrowKSTMidnightUTC()
 
   const feed = await prisma.feed.create({
     data: {
