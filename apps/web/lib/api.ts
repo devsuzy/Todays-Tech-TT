@@ -39,6 +39,19 @@ export async function getTags(): Promise<Tag[]> {
   }
 }
 
+export async function searchFeeds(q: string): Promise<FeedListItem[]> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/v1/feeds/search?q=${encodeURIComponent(q)}`,
+      { cache: 'no-store' }
+    )
+    if (!res.ok) return []
+    return res.json()
+  } catch {
+    return []
+  }
+}
+
 export async function getTomorrowFeed(): Promise<FeedDetail | null> {
   try {
     const res = await fetch(`${API_BASE}/api/v1/feeds/tomorrow`, {

@@ -54,6 +54,31 @@ router.get('/today', async (req, res) => {
   res.json(feed)
 })
 
+// GET /api/v1/feeds/search?q=... — 타이틀 기반 검색
+router.get('/search', async (req, res) => {
+  const q = (req.query.q as string)?.trim()
+  if (!q) return res.status(400).json({ error: 'MISSING_QUERY' })
+
+  try {
+    const feeds = await prisma.feed.findMany({
+      where: {
+        status: 'PUBLISHED',
+        sections: { some: { title: { contains: q, mode: 'insensitive' } } },
+      },
+      include: {
+        sections: { orderBy: { order: 'asc' }, take: 1 },
+        tags: { include: { tag: true } },
+        article: { select: { ogImage: true } },
+      },
+      orderBy: { date: 'desc' },
+      take: 20,
+    })
+    res.json(feeds)
+  } catch {
+    res.status(500).json({ error: 'INTERNAL_ERROR' })
+  }
+})
+
 // GET /api/v1/feeds/:date — 날짜별 피드 상세 (YYYY-MM-DD)
 router.get('/:date', async (req, res) => {
   const dateUTC = dateStringToKSTMidnightUTC(req.params.date)
