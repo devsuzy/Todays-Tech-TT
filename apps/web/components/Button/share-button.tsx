@@ -3,11 +3,15 @@
 import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Link } from "lucide-react";
 
 export function ShareButton() {
   const handleShare = async () => {
     await navigator.clipboard.writeText(window.location.href);
-    toast("URL이 클립보드에 복사되었습니다.", { position: "bottom-center" });
+    toast("URL이 클립보드에 복사되었습니다.", {
+      position: "bottom-center",
+      icon: <Link width={16} height={16} />
+    });
   };
 
   return (

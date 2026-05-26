@@ -1,7 +1,7 @@
 import { getFeeds, getTags } from "@/lib/api";
 import { FeedCard } from "@/components/feed-card";
-import { TagFilterBar } from "@/components/tag-filter-bar";
-import { Header } from "@/components/header";
+import { TagFilterBar } from "@/components/Tag/tag-filter-bar";
+import { Header } from "@/components/Layout/header";
 
 export default async function ArchivePage({
   searchParams,
@@ -16,6 +16,7 @@ export default async function ArchivePage({
       <Header />
       <main className="max-w-2xl mx-auto px-4 py-8 md:max-w-3xl xl:max-w-5xl">
         <TagFilterBar tags={tags} selectedTag={tag} />
+        
         <div className="flex flex-col gap-6 mt-6 md:grid md:grid-cols-2 xl:grid-cols-3">
           {feeds.length === 0 ? (
             <p className="text-muted-foreground py-16">

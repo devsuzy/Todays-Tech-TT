@@ -16,7 +16,7 @@ export function TagFilterBar({ tags, selectedTag }: Props) {
   }
 
   const baseClass =
-    "px-3 py-1.5 rounded-full text-base font-medium border transition-colors cursor-pointer";
+    "px-3 py-1.5 rounded-full text-sm font-medium border transition-colors cursor-pointer md:text-base";
   const activeClass = "bg-foreground text-background border-foreground";
   const inactiveClass =
     "bg-background text-foreground border-border hover:bg-muted";

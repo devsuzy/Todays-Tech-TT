@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatKSTDate, toKSTDateString } from "@/lib/date-utils";
-import { TagBadge } from "@/components/tag-badge";
+import { TagBadge } from "@/components/Tag/tag-badge";
 import type { FeedListItem } from "@/types";
 
 interface Props {
