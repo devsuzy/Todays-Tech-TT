@@ -6,12 +6,12 @@
     "dev": "ts-node-dev --require ./load-env.js --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "crawl": "ts-node src/jobs/crawl.ts",
-    "summarize": "ts-node src/jobs/summarize.ts",
-    "publish": "ts-node src/jobs/publish.ts",
+    "crawl": "ts-node --require ./load-env.js src/jobs/crawl.ts",
+    "summarize": "ts-node --require ./load-env.js src/jobs/summarize.ts",
+    "publish": "ts-node --require ./load-env.js src/jobs/publish.ts",
     "db:generate": "prisma generate",
     "db:migrate": "sh -c 'set -a && . ../../.env && set +a && prisma migrate dev'",
-    "db:seed": "ts-node prisma/seed.ts",
+    "db:seed": "ts-node --require ./load-env.js prisma/seed.ts",
     "db:studio": "sh -c 'set -a && . ../../.env && set +a && prisma studio'"
   },
   "dependencies": {

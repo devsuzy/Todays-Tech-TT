@@ -20,7 +20,7 @@ export function ShareButton() {
       size="icon"
       onClick={handleShare}
       aria-label="공유하기"
-      className="rounded-full cursor-pointer border border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-ring/50"
+      className="rounded-full cursor-pointer border-none focus-visible:border-ring focus-visible:ring-ring/50"
       >
       <Share2 className="w-5 h-5 text-muted-foreground/70 hover:text-muted-foreground" />
     </Button>
