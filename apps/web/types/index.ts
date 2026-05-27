@@ -7,6 +7,15 @@ export type Tag = {
   color: string | null
 }
 
+export type Source = {
+  id: number
+  name: string
+  homeUrl: string
+  feedUrl: string
+  slug: string
+  isActive: boolean
+}
+
 export type FeedSectionData = {
   id: number
   feedId: number
@@ -34,6 +43,6 @@ export type FeedDetail = {
     title: string
     originalUrl: string
     ogImage: string | null
-    source: { name: string; homeUrl: string }
+    source: Source
   } | null
 }

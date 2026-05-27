@@ -37,8 +37,8 @@ export default async function FeedDetailPage({
         </div>
 
         {/* Article Image */}
-        {feed.article?.ogImage && (
-          <div className="relative w-full h-56 rounded-xl overflow-hidden mb-6 md:h-80">
+        <div className="relative w-full h-56 rounded-xl overflow-hidden mb-6 md:h-80">
+          {feed.article?.ogImage ? (
             <Image
               src={feed.article.ogImage}
               alt=""
@@ -47,8 +47,17 @@ export default async function FeedDetailPage({
               sizes="(max-width: 768px) 100vw, 672px"
               priority
             />
-          </div>
-        )}
+          ) : (
+            <Image
+              src={"/images/thumbnail-default-img-1.png"}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 672px"
+              priority
+              />
+            )}
+        </div>
 
         {/* Article Title */}
         {feed.article && (
@@ -88,6 +97,17 @@ export default async function FeedDetailPage({
           {feed.sections.map((section) => (
             <FeedSectionItem key={section.id} section={section} />
           ))}
+
+          {feed.article && (
+            <Link
+              href={feed.article.source.homeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-muted-foreground hover:underline"
+            >
+              출처: {feed.article.source.name}
+            </Link>
+          )}
         </div>
 
         <Separator className="mt-10 mb-8" />

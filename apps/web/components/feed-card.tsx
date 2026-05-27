@@ -15,8 +15,8 @@ export function FeedCard({ feed }: Props) {
   return (
     <Link href={`/feed/${dateStr}`}>
       <div className="border rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-        {feed.article?.ogImage && (
-          <div className="relative w-full h-44">
+        <div className="relative w-full h-44">
+          {feed.article?.ogImage ? (
             <Image
               src={feed.article.ogImage}
               alt=""
@@ -24,8 +24,17 @@ export function FeedCard({ feed }: Props) {
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 680px"
             />
-          </div>
-        )}
+          ) : (
+            <Image
+              src={"/images/thumbnail-default-img-1.png"}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 680px"
+            />
+          )}
+        </div>
+
         <div className="p-5">
           <p className="text-sm text-muted-foreground mb-1">
             {formatKSTDate(feed.date)}
