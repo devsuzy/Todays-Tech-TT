@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { prisma } from '../lib/prisma'
 import { openai } from '../lib/openai'
 import { getTomorrowKSTMidnightUTC } from '../lib/date'
+import { fetchOgImage } from '../lib/og'
 
 const SYSTEM_PROMPT = `너는 한국 기술 블로그 아티클을 심층 분석해 독자에게 전달하는 테크 에디터야.
 아티클 제목만 보고도 해당 주제의 핵심을 파악해, 원문을 읽지 않아도 내용을 완전히 이해할 수 있도록 충분히 상세하게 작성해.
@@ -35,7 +36,7 @@ export async function runSummarize(targetDate?: Date) {
   console.log('[summarize] Starting...')
 
   // Feed에 연결되지 않은 가장 최근 Article 선정
-  const article = await prisma.article.findFirst({
+  let article = await prisma.article.findFirst({
     where: { feed: null },
     orderBy: { publishedAt: 'desc' },
     include: { source: true },
@@ -47,6 +48,14 @@ export async function runSummarize(targetDate?: Date) {
   }
 
   console.log(`[summarize] Processing: "${article.title}"`)
+
+  if (!article.ogImage) {
+    const ogImage = await fetchOgImage(article.originalUrl)
+    if (ogImage) {
+      await prisma.article.update({ where: { id: article.id }, data: { ogImage } })
+      article = { ...article, ogImage }
+    }
+  }
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
