@@ -43,6 +43,7 @@ export function TomorrowPreview({ tomorrowDate }: Props) {
     try {
       const token = JSON.parse(raw) as PreviewToken;
       if (new Date(token.expiresAt) > new Date()) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setState("UNLOCKED");
         getTomorrowFeed().then(setTomorrowFeed);
       } else {
