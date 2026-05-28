@@ -2,6 +2,7 @@ import cron from 'node-cron'
 import { runCrawl } from '../jobs/crawl'
 import { runSummarize } from '../jobs/summarize'
 import { runPublish } from '../jobs/publish'
+import { runSlackNotify } from '../jobs/slack-notify'
 
 export function registerCronJobs() {
   // Stage 1: 매일 06:00 KST
@@ -19,5 +20,10 @@ export function registerCronJobs() {
     try { await runPublish() } catch (e) { console.error('[cron] publish failed:', e) }
   }, { timezone: 'Asia/Seoul' })
 
-  console.log('[cron] Daily pipeline jobs registered (KST 06:00 / 07:00 / 08:00)')
+  // Stage 4: 매일 09:00 KST
+  cron.schedule('0 9 * * *', async () => {
+    try { await runSlackNotify() } catch (e) { console.error('[cron] slack-notify failed:', e) }
+  }, { timezone: 'Asia/Seoul' })
+
+  console.log('[cron] Daily pipeline jobs registered (KST 06:00 / 07:00 / 08:00 / 09:00)')
 }

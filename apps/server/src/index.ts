@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import feedsRouter from './routes/feeds'
 import tagsRouter from './routes/tags'
+import slackRouter from './routes/slack'
 import { registerCronJobs } from './cron/dailyPipeline'
 import { runCatchUpIfNeeded } from './jobs/catchup'
 
@@ -15,6 +16,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }))
 
 app.use('/api/v1/feeds', feedsRouter)
 app.use('/api/v1/tags', tagsRouter)
+app.use('/api/v1/slack', slackRouter)
 
 app.listen(PORT, async () => {
   console.log(`[server] Listening on http://localhost:${PORT}`)

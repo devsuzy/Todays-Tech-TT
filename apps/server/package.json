@@ -9,6 +9,7 @@
     "crawl": "ts-node --require ./load-env.js src/jobs/crawl.ts",
     "summarize": "ts-node --require ./load-env.js src/jobs/summarize.ts",
     "publish": "ts-node --require ./load-env.js src/jobs/publish.ts",
+    "slack-notify": "ts-node --require ./load-env.js src/jobs/slack-notify.ts",
     "db:generate": "prisma generate",
     "db:migrate": "sh -c 'set -a && . ../../.env && set +a && prisma migrate dev'",
     "db:seed": "ts-node --require ./load-env.js prisma/seed.ts",
