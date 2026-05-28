@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { SearchModal } from "@/components/Search/search-modal";
+import { SearchModal } from "@/components/Modal/search-modal";
+import { BellPopover } from "@/components/Popover/bell-popover";
 
 export function Header() {
   return (
@@ -8,7 +9,10 @@ export function Header() {
         <Link href="/archive" className="font-bold text-lg tracking-tight">
           Today&apos;s Tech
         </Link>
-        <SearchModal />
+        <div className="flex items-center gap-1 md:gap-3">
+          <BellPopover />
+          <SearchModal />
+        </div>
       </div>
     </header>
   );
