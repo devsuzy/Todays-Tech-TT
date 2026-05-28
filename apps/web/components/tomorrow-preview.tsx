@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { TomorrowFeedCard } from "@/components/Card/tomorrow-feed-card";
 import { Progress } from "@/components/ui/progress";
 import { getTomorrowFeed } from "@/lib/api";
 import type { FeedDetail } from "@/types";
+import { LockKeyhole, Sparkles, ChevronRight } from "lucide-react";
 
 type PreviewState = "LOCKED" | "WATCHING" | "UNLOCKED";
 
@@ -84,27 +87,28 @@ export function TomorrowPreview({ tomorrowDate }: Props) {
   const secondsLeft = Math.ceil((5000 - (progress / 100) * 5000) / 1000);
 
   return (
-    <div className="border rounded-lg p-6 bg-muted/20">
-      <h2 className="text-base font-semibold mb-4">내일 피드 미리보기</h2>
-
+    <div className="border-accent rounded-lg bg-muted/20">
       {state === "LOCKED" && (
-        <div>
-          <p className="text-sm text-muted-foreground mb-4">
-            짧은 광고를 시청하면 내일의 피드를 미리 볼 수 있어요.
+        <div className="flex flex-col items-center text-center gap-4 md:gap-6 border border-accent bg-linear-to-b from-primary/30 to-white rounded-lg p-6 md:p-8">
+          <div className="bg-background rounded-full p-4">
+            <LockKeyhole className="text-primary" />
+          </div>
+          <p className="text-base font-medium md:text-lg">
+            짧은 광고를 시청하면 <br/> 내일의 피드를 미리 볼 수 있어요.
           </p>
-          <Button onClick={handleStartWatching} variant="outline">
-            미리보기 👀
+          <Button onClick={handleStartWatching} size="lg" className="px-8">
+            미리보기
           </Button>
         </div>
       )}
 
       {state === "WATCHING" && (
         <div className="space-y-4">
-          <div className="bg-background border rounded-md p-8 text-center">
+          <div className="flex flex-col items-center text-center gap-4 border bg-background rounded-lg p-6 md:p-8">
             <p className="text-lg font-medium">광고 시청 중</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Today&apos;s Tech는 광고 수익으로 운영됩니다. 잠시만 기다려
-              주세요!
+            <p className="text-sm text-muted-foreground">
+              Today&apos;s Tech는 광고 수익으로 운영됩니다. <br/>
+              잠시만 기다려주세요!
             </p>
           </div>
           <Progress value={progress} className="h-2" />
@@ -115,20 +119,20 @@ export function TomorrowPreview({ tomorrowDate }: Props) {
       )}
 
       {state === "UNLOCKED" && (
-        <div>
-          <p className="text-xs text-muted-foreground mb-3">
-            ✓ 잠금 해제됨 · 자정에 정식 공개됩니다
-          </p>
+        <div className="flex flex-col gap-4 border bg-background rounded-lg p-6 md:p-8">
+          <div className="flex items-center justify-between">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-primary">
+              <Sparkles width={16} height={16} />
+              내일의 피드 미리 보기
+            </p>
+            <Link href={`/feed/${tomorrowDate}`} className="flex items-center gap-1.5 text-sm font-medium text-primary">
+              전체보기
+              <ChevronRight width={16} height={16} />
+            </Link>
+          </div>
+
           {tomorrowFeed ? (
-            <div className="space-y-3">
-              {tomorrowFeed.sections.map((section) => (
-                <div key={section.id} className="border-l-2 border-muted pl-3">
-                  <p className="text-sm font-medium">
-                    {section.order}. {section.title}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <TomorrowFeedCard feed={tomorrowFeed} tomorrowDate={tomorrowDate} />
           ) : (
             <p className="text-sm text-muted-foreground">
               내일 피드를 준비 중입니다.

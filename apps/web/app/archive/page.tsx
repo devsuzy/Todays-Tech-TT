@@ -1,5 +1,5 @@
 import { getFeeds, getTags } from "@/lib/api";
-import { FeedCard } from "@/components/feed-card";
+import { FeedCard } from "@/components/Card/feed-card";
 import { TagFilterBar } from "@/components/Tag/tag-filter-bar";
 import { Header } from "@/components/Layout/header";
 

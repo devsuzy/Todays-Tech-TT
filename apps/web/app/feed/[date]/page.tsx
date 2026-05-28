@@ -11,7 +11,7 @@ import { formatKSTDateLong, getTodayKSTString, getTomorrowKSTString } from "@/li
 import { ShareButton } from "@/components/Button/share-button";
 import { BackButton } from "@/components/Button/back-button";
 import { ListButton } from "@/components/Button/list-button";
-import { BotMessageSquare } from "lucide-react";
+import { BotMessageSquare, LockKeyholeOpen } from "lucide-react";
 
 export default async function FeedDetailPage({
   params,
@@ -30,6 +30,18 @@ export default async function FeedDetailPage({
     <div className="min-h-screen">
       <Header />
       <main className="max-w-3xl mx-auto px-4 py-8">
+        {feed.status === 'DRAFT' && (
+          <div className="flex gap-4 rounded-md bg-primary/10 border border-primary text-primary p-4 mb-6">
+            <LockKeyholeOpen />
+            <div className="flex flex-col gap-1 text-sm">
+              <p className="font-medium">미리보기 중이에요</p>
+              <p className="text-xs text-muted-foreground">
+                해당 콘텐츠는 내일 정식으로 공개됩니다.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Feed Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold md:text-xl">{formatKSTDateLong(feed.date)}</h3>
@@ -73,8 +85,23 @@ export default async function FeedDetailPage({
           </h1>
         )}
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        
+        <div className="flex items-center gap-2 mb-6">
+          {/* Source Link */}
+          {feed.article && (
+            <Link
+              href={feed.article.source.homeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-muted-foreground hover:underline"
+            >
+              출처: {feed.article.source.name}
+            </Link>
+          )}
+
+          ᐧ
+
+          {/* Tags */}
           {feed.tags.map(({ tag }) => (
             <TagBadge key={tag.id} name={tag.name} color={tag.color} />
           ))}
@@ -89,7 +116,7 @@ export default async function FeedDetailPage({
               <BotMessageSquare />
               <p className="font-semibold text-sm md:text-base">AI 요약</p>
             </div>
-            <p className="font-medium text-muted-foregroun text-sm md:text-base">
+            <p className="font-medium text-muted-foreground text-sm md:text-base">
               해당 글은 AI가 원문을 분석하여 핵심만 요약한 내용입니다.
             </p>
           </div>
@@ -97,17 +124,6 @@ export default async function FeedDetailPage({
           {feed.sections.map((section) => (
             <FeedSectionItem key={section.id} section={section} />
           ))}
-
-          {feed.article && (
-            <Link
-              href={feed.article.source.homeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:underline"
-            >
-              출처: {feed.article.source.name}
-            </Link>
-          )}
         </div>
 
         <Separator className="mt-10 mb-8" />
@@ -119,7 +135,9 @@ export default async function FeedDetailPage({
         </div>
 
         {/* Tomorrow Preview */}
-        <TomorrowPreview tomorrowDate={tomorrowDate} />
+        {feed.status === 'PUBLISHED' && (
+          <TomorrowPreview tomorrowDate={tomorrowDate} />
+        )}
       </main>
     </div>
   );

@@ -17,7 +17,7 @@ export async function runCatchUpIfNeeded() {
 
   console.log('[catchup] No feed for today. Running catch-up pipeline...')
   await runCrawl()
-  await runSummarize(todayUTC)
+  await runSummarize()
   await runPublish()
   console.log('[catchup] Done.')
 }

@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { prisma } from '../lib/prisma'
 import { openai } from '../lib/openai'
-import { getTomorrowKSTMidnightUTC } from '../lib/date'
+import { getTodayKSTMidnightUTC, getTomorrowKSTMidnightUTC } from '../lib/date'
 import { fetchOgImage } from '../lib/og'
 
 const SYSTEM_PROMPT = `너는 한국 기술 블로그 아티클을 심층 분석해 독자에게 전달하는 테크 에디터야.
@@ -32,10 +32,9 @@ type SummarizeResult = {
   tags: string[]
 }
 
-export async function runSummarize(targetDate?: Date) {
-  console.log('[summarize] Starting...')
+type FeedStatus = 'DRAFT' | 'PUBLISHED'
 
-  // Feed에 연결되지 않은 가장 최근 Article 선정
+async function createFeedEntry(date: Date, status: FeedStatus) {
   let article = await prisma.article.findFirst({
     where: { feed: null },
     orderBy: { publishedAt: 'desc' },
@@ -43,11 +42,11 @@ export async function runSummarize(targetDate?: Date) {
   })
 
   if (!article) {
-    console.log('[summarize] No unprocessed articles found.')
+    console.log(`[summarize] No unprocessed articles for ${date.toISOString().slice(0, 10)}`)
     return
   }
 
-  console.log(`[summarize] Processing: "${article.title}"`)
+  console.log(`[summarize] Processing for ${date.toISOString().slice(0, 10)} (${status}): "${article.title}"`)
 
   if (!article.ogImage) {
     const ogImage = await fetchOgImage(article.originalUrl)
@@ -70,12 +69,11 @@ export async function runSummarize(targetDate?: Date) {
   if (!content) throw new Error('Empty OpenAI response')
 
   const result = JSON.parse(content) as SummarizeResult
-  const tomorrowDate = targetDate ?? getTomorrowKSTMidnightUTC()
 
   const feed = await prisma.feed.create({
     data: {
-      date: tomorrowDate,
-      status: 'DRAFT',
+      date,
+      status,
       articleId: article.id,
       sections: {
         create: result.sections.map((s, i) => ({
@@ -87,7 +85,6 @@ export async function runSummarize(targetDate?: Date) {
     },
   })
 
-  // 태그 연결
   for (const tagName of result.tags) {
     const tag = await prisma.tag.findFirst({
       where: { name: { equals: tagName, mode: 'insensitive' } },
@@ -101,7 +98,29 @@ export async function runSummarize(targetDate?: Date) {
     }
   }
 
-  console.log(`[summarize] Feed created for ${tomorrowDate.toISOString().slice(0, 10)}`)
+  console.log(`[summarize] Feed created for ${date.toISOString().slice(0, 10)} (${status})`)
+}
+
+export async function runSummarize() {
+  console.log('[summarize] Starting...')
+
+  const todayDate = getTodayKSTMidnightUTC()
+  const todayExists = await prisma.feed.findUnique({ where: { date: todayDate } })
+  if (todayExists) {
+    console.log(`[summarize] Today's feed already exists (${todayDate.toISOString().slice(0, 10)})`)
+  } else {
+    await createFeedEntry(todayDate, 'PUBLISHED')
+  }
+
+  const tomorrowDate = getTomorrowKSTMidnightUTC()
+  const tomorrowExists = await prisma.feed.findUnique({ where: { date: tomorrowDate } })
+  if (tomorrowExists) {
+    console.log(`[summarize] Tomorrow's feed already exists (${tomorrowDate.toISOString().slice(0, 10)})`)
+  } else {
+    await createFeedEntry(tomorrowDate, 'DRAFT')
+  }
+
+  console.log('[summarize] Done.')
 }
 
 if (require.main === module) {

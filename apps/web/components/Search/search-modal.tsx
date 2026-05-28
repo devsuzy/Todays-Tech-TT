@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FeedCard } from "@/components/feed-card";
+import { FeedCard } from "@/components/Card/feed-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { searchFeeds } from "@/lib/api";
 import type { FeedListItem } from "@/types";

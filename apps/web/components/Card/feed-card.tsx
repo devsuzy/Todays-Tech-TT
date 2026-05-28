@@ -14,7 +14,7 @@ export function FeedCard({ feed }: Props) {
 
   return (
     <Link href={`/feed/${dateStr}`}>
-      <div className="border rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <div className="rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
         <div className="relative w-full h-44">
           {feed.article?.ogImage ? (
             <Image
@@ -36,11 +36,16 @@ export function FeedCard({ feed }: Props) {
         </div>
 
         <div className="p-5">
-          <p className="text-sm text-muted-foreground mb-1">
+          <p className="text-sm text-muted-foreground mb-1.5">
             {formatKSTDate(feed.date)}
           </p>
           {firstSection && (
-            <h3 className="font-semibold leading-snug">{firstSection.title}</h3>
+            <h3 className="font-semibold leading-snug mb-1.5">{firstSection.title}</h3>
+          )}
+          {feed.article?.source?.name && (
+            <p className="text-xs text-muted-foreground">
+              {feed.article.source.name}
+            </p>
           )}
           <div className="mt-3 flex flex-wrap gap-1">
             {feed.tags.map(({ tag }) => (

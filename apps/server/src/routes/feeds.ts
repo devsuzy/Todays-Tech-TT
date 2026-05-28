@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
     include: {
       sections: { orderBy: { order: 'asc' }, take: 1 },
       tags: { include: { tag: true } },
-      article: { select: { ogImage: true } },
+      article: { select: { ogImage: true, source: { select: { name: true } } } },
     },
     orderBy: { date: 'desc' },
   })
@@ -68,7 +68,7 @@ router.get('/search', async (req, res) => {
       include: {
         sections: { orderBy: { order: 'asc' }, take: 1 },
         tags: { include: { tag: true } },
-        article: { select: { ogImage: true } },
+        article: { select: { ogImage: true, source: { select: { name: true } } } },
       },
       orderBy: { date: 'desc' },
       take: 20,

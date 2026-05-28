@@ -30,7 +30,10 @@ export type FeedListItem = {
   status: FeedStatus
   sections: Pick<FeedSectionData, 'id' | 'order' | 'title'>[]
   tags: { tag: Tag }[]
-  article: { ogImage: string | null } | null
+  article: { 
+    ogImage: string | null;
+    source: { name: string } 
+  } | null
 }
 
 export type FeedDetail = {
