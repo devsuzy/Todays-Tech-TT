@@ -126,7 +126,7 @@ export function TomorrowPreview({ tomorrowDate }: Props) {
               <Sparkles width={16} height={16} />
               내일의 피드 미리 보기
             </p>
-            <Link href={`/feed/${tomorrowDate}`} className="flex items-center gap-1.5 text-sm font-medium text-primary">
+            <Link href={`/feed/${tomorrowDate}`} className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
               전체보기
               <ChevronRight width={16} height={16} />
             </Link>

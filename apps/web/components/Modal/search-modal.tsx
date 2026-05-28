@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { searchFeeds } from "@/lib/api";
 import type { FeedListItem } from "@/types";
 import { MessageCircleQuestionMark } from "lucide-react";
+import { Input } from "../ui/input";
 
 export function SearchModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +78,7 @@ export function SearchModal() {
             </div>
 
             {/* 검색 입력 */}
-            <input
+            <Input
               autoFocus
               type="text"
               value={query}
