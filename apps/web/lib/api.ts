@@ -2,12 +2,19 @@ import type { FeedDetail, FeedListItem, Tag } from '@/types'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
 
-export async function getFeeds(tag?: string): Promise<FeedListItem[]> {
-  const url = tag
-    ? `${API_BASE}/api/v1/feeds?tag=${encodeURIComponent(tag)}`
-    : `${API_BASE}/api/v1/feeds`
+export async function getFeeds(
+  tag?: string,
+  skip = 0,
+  limit = 20
+): Promise<FeedListItem[]> {
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (tag) params.set('tag', tag)
+  const url = `${API_BASE}/api/v1/feeds?${params}`
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    const fetchOptions = skip === 0
+      ? { next: { revalidate: 3600 } }
+      : { cache: 'no-store' as const }
+    const res = await fetch(url, fetchOptions)
     if (!res.ok) return []
     return res.json()
   } catch {

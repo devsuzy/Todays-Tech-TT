@@ -10,9 +10,11 @@ const FEED_INCLUDE = {
   article: { include: { source: true } },
 }
 
-// GET /api/v1/feeds — 아카이브 목록 (?tag=react)
+// GET /api/v1/feeds — 아카이브 목록 (?tag=react&skip=0&limit=20)
 router.get('/', async (req, res) => {
   const tag = req.query.tag as string | undefined
+  const skip = Math.max(0, parseInt(req.query.skip as string ?? '0', 10))
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string ?? '20', 10)))
 
   const feeds = await prisma.feed.findMany({
     where: {
@@ -25,6 +27,8 @@ router.get('/', async (req, res) => {
       article: { select: { ogImage: true, source: { select: { name: true } } } },
     },
     orderBy: { date: 'desc' },
+    skip,
+    take: limit,
   })
 
   res.json(feeds)
