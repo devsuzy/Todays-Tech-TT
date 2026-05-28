@@ -30,3 +30,21 @@ const date = params.date        // ❌ 타입 에러
 ### 외부 이미지
 
 `next.config.ts`에 `remotePatterns: [{ protocol: 'https', hostname: '**' }]` 설정됨 — `<Image>` 컴포넌트로 모든 https 이미지 허용.
+
+### 코드 컨벤션
+
+#### 파일명 & 폴더명
+- **컴포넌트**: kebab-case (`feed-card.tsx`)
+- **유틸/훅/서비스**: kebab-case (`use-auth.ts`, `format-date.ts`)
+- **타입 파일**: kebab-case (`nail-types.ts`)
+
+### TypeScript 규칙
+- `any` 사용 금지 (불가피한 경우 `unknown` 사용 후 타입 가드)
+- Props는 `interface` 또는 `type`으로 명시
+- API 응답 타입 필수 정의
+
+### 주의사항
+- 새 패키지 추가 시 기존 의존성과 충돌 확인
+- 타입 안정성 보장
+- 재사용 가능한 컴포넌트로 설계
+- UI 컴포넌트와 API 호출 컴포넌트 확실히 구분 
