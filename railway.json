@@ -7,6 +7,6 @@
   "deploy": {
     "startCommand": "npx prisma migrate deploy --schema=apps/server/prisma/schema.prisma && node apps/server/dist/index.js",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 30
+    "healthcheckTimeout": 120
   }
 }
