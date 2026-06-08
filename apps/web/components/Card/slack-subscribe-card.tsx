@@ -1,34 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "../ui/input";
+import { useState, useEffect } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
+const SLACK_CLIENT_ID = process.env.NEXT_PUBLIC_SLACK_CLIENT_ID ?? "";
 
-type Status = "idle" | "loading" | "success" | "error";
+const slackOAuthUrl = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=incoming-webhook&redirect_uri=${encodeURIComponent(`${API_BASE}/api/v1/slack/oauth/callback`)}`;
+
+type Status = "idle" | "connected" | "error";
 
 export function SlackSubscribeCard() {
-  const [webhookUrl, setWebhookUrl] = useState("");
   const [status, setStatus] = useState<Status>("idle");
 
-  async function handleSubscribe() {
-    if (!webhookUrl.startsWith("https://hooks.slack.com/services/")) {
-      setStatus("error");
-      return;
-    }
-    setStatus("loading");
-    try {
-      const res = await fetch(`${API_BASE}/api/v1/slack/subscribe`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ webhookUrl }),
-      });
-      setStatus(res.ok ? "success" : "error");
-    } catch {
-      setStatus("error");
-    }
-  }
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const slack = params.get("slack");
+    if (slack === "connected") setStatus("connected");
+    else if (slack === "error") setStatus("error");
+  }, []);
 
   return (
     <div className="border rounded-lg p-6 bg-background space-y-4">
@@ -40,35 +29,28 @@ export function SlackSubscribeCard() {
         매일 아침 9시, 오늘의 피드를 Slack 채널로 받아보세요.
       </p>
 
-      {status === "success" ? (
+      {status === "connected" ? (
         <p className="text-sm font-medium text-green-600">
-          구독이 완료되었습니다!
+          Slack 채널이 연동되었습니다! 🎉
         </p>
       ) : (
         <>
-          <div className="flex gap-2">
-            <Input
-              type="url"
-              placeholder="https://hooks.slack.com/services/..."
-              value={webhookUrl}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setWebhookUrl(e.target.value);
-                setStatus("idle");
-              }}
-              className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+          <a href={slackOAuthUrl} className="inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt="Add to Slack"
+              height="40"
+              width="139"
+              src="https://platform.slack-edge.com/img/add_to_slack.png"
             />
-            <Button onClick={handleSubscribe} disabled={status === "loading"}>
-              {status === "loading" ? "처리 중..." : "구독"}
-            </Button>
-          </div>
+          </a>
           {status === "error" && (
             <p className="text-xs text-destructive">
-              올바른 Slack Webhook URL을 입력해주세요.
-              (https://hooks.slack.com/services/...)
+              연동 중 오류가 발생했습니다. 다시 시도해주세요.
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Slack 채널의 Incoming Webhooks 앱에서 URL을 복사해 붙여넣으세요.
+            워크스페이스와 채널을 선택하면 자동으로 연동됩니다.
           </p>
         </>
       )}
