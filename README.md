@@ -30,7 +30,7 @@
 - **검색**: 아티클 타이틀 및 요약 섹션 키워드 전문 검색
 - **피드 상세 페이지**: 섹션별 요약 + 출처 정보 + 태그 표시
 - **내일 피드 미리보기**: 비공개 DRAFT 상태의 다음 날 피드를 미리 볼 수 있는 잠금 해제 UI
-- **Slack 알림 구독**: 웹훅 URL 등록 시 매일 09:00(KST) 오늘 피드를 Block Kit 포맷으로 자동 발송
+- **Slack 알림 구독**: Add to Slack 버튼으로 OAuth 연동, 매일 09:00(KST) 오늘 피드를 Block Kit 포맷으로 자동 발송
 - **일일 자동 파이프라인**: 크롤(06:00) → 요약(07:00) → 발행(08:00) → Slack 알림(09:00) 4단계 cron 자동화
 
 ---
@@ -50,110 +50,17 @@
 
 ---
 
-## 아키텍처 & 기술적 의사결정
-
-### Next.js SSR 데이터 페칭 전략
-
-이 프로젝트의 데이터 페칭은 **Server Component(SSR/ISR)와 Client Component(CSR)를 의도적으로 분리**하여 구현했습니다.
-
-피드 콘텐츠는 하루 1회 업데이트되므로 SSR + ISR로 초기 렌더링 성능(LCP)과 SEO를 확보하고, 무한스크롤·검색처럼 실시간성이 필요한 기능은 CSR로 분리했습니다.
-
-```
-[초기 페이지 로드 — Server Component]
-
-Browser ──요청──▶ Vercel 서버(Node.js)
-                       │
-                       │ fetch() — 서버 내부에서 실행
-                       ▼
-                  Railway API
-                       │
-                       ▼
-                  Vercel 서버 ──완성된 HTML──▶ Browser
-
-
-[무한스크롤 / 검색 — Client Component]
-
-Browser ──fetch()──▶ Railway API (직접 호출)
-```
-
-**캐싱 전략 두 가지** (`lib/api.ts`):
-
-| 함수 | 캐시 옵션 | 실행 위치 | 이유 |
-|------|-----------|----------|------|
-| `getFeeds(skip=0)`, `getFeed()`, `getTags()` | `{ next: { revalidate: 3600 } }` | Server Component | SEO + LCP 최적화, 1시간 ISR |
-| `getFeeds(skip>0)`, `searchFeeds()`, `getTomorrowFeed()` | `{ cache: 'no-store' }` | Client Component | 실시간 데이터 필요 |
-
-### NEXT_PUBLIC_ 환경변수의 서버·클라이언트 이중 동작
-
-`lib/api.ts`의 `API_BASE`는 `NEXT_PUBLIC_API_BASE_URL`을 참조합니다. `NEXT_PUBLIC_` 접두사 덕분에 이 변수는 **빌드 시 클라이언트 번들에 인라인**되어, Server Component와 Client Component가 동일한 `getFeeds()` 함수를 호출하더라도 각자의 실행 환경(서버 Node.js / 브라우저)에서 올바르게 Railway URL을 참조합니다.
-
-### 모노레포 구조 (Turborepo)
-
-독립 배포 단위인 `apps/web`과 `apps/server`를 단일 레포로 관리합니다. Turborepo의 태스크 캐싱 덕분에 변경이 없는 앱은 빌드를 건너뜁니다.
-
-```
-web(:3000) ──fetch──▶ server(:4000)/api/v1/...
-                              │
-                         Prisma ORM
-                              │
-                        PostgreSQL (Supabase)
-```
-
----
-
 ## 프로젝트 구조
 
 ```
 todays-tech-TT/
 ├── apps/
-│   ├── web/                        # Next.js 16 프론트엔드 (:3000)
-│   │   ├── app/
-│   │   │   ├── page.tsx            # → redirect /archive
-│   │   │   ├── layout.tsx
-│   │   │   ├── archive/page.tsx    # 피드 목록 + 태그 필터 + 무한스크롤
-│   │   │   └── feed/[date]/page.tsx # 피드 상세
-│   │   ├── components/
-│   │   │   ├── Button/             # back-button, list-button, share-button
-│   │   │   ├── Card/               # feed-card, slack-subscribe-card, tomorrow-feed-card
-│   │   │   ├── Layout/             # feed-grid, header
-│   │   │   ├── Modal/              # search-modal
-│   │   │   ├── Popover/            # bell-popover (Slack 구독 UI)
-│   │   │   ├── Tag/                # tag-badge, tag-filter-bar
-│   │   │   ├── feed-section-item.tsx
-│   │   │   ├── tomorrow-preview.tsx
-│   │   │   └── ui/                 # shadcn/ui 기본 컴포넌트
-│   │   ├── lib/
-│   │   │   ├── api.ts              # fetch 헬퍼 (SSR/CSR 전략 분리)
-│   │   │   └── date-utils.ts       # KST 날짜 포맷
-│   │   └── types/index.ts
-│   │
-│   └── server/                     # Express API 서버 (:4000)
-│       ├── prisma/
-│       │   ├── schema.prisma
-│       │   └── seed.ts             # RssSource 5개, Tag 8개
-│       └── src/
-│           ├── index.ts            # Express 진입점 + cron 등록
-│           ├── cron/
-│           │   └── dailyPipeline.ts # 4단계 cron 스케줄 (KST)
-│           ├── jobs/
-│           │   ├── crawl.ts        # RSS 크롤링 + OG 이미지 추출
-│           │   ├── summarize.ts    # gpt-4o-mini 요약 → Feed 생성
-│           │   ├── publish.ts      # DRAFT → PUBLISHED
-│           │   ├── slack-notify.ts # Slack Block Kit 알림 발송
-│           │   └── catchup.ts      # 서버 재시작 시 누락 피드 복구
-│           ├── routes/
-│           │   ├── feeds.ts
-│           │   ├── tags.ts
-│           │   └── slack.ts        # 구독/해제 API
-│           └── lib/
-│               ├── prisma.ts
-│               ├── openai.ts
-│               └── og.ts           # OG 이미지 파싱
-│
-├── railway.json                    # Railway 배포 설정 (NIXPACKS)
+│   ├── web/          # Next.js 16 프론트엔드 (:3000)
+│   └── server/       # Express API 서버 + cron (:4000)
+│       └── prisma/   # 스키마 + 마이그레이션 + 시드
+├── railway.json      # Railway 배포 설정 (NIXPACKS)
 ├── .env.example
-├── turbo.json
-└── package.json
+└── turbo.json
 ```
 
 ---
@@ -253,8 +160,9 @@ Base URL: `https://todays-tech-tt-production.up.railway.app/api/v1`
 | `GET` | `/feeds/tomorrow` | 내일 피드 (DRAFT, 미리보기용) |
 | `GET` | `/feeds/:date` | 날짜별 피드 상세 (`YYYY-MM-DD`) |
 | `GET` | `/tags` | 전체 태그 목록 |
-| `POST` | `/slack/subscribe` | Slack 웹훅 구독 등록 |
-| `DELETE` | `/slack/unsubscribe` | Slack 웹훅 구독 해제 |
+| `GET` | `/slack/oauth/start` | Slack OAuth 인증 시작 (Slack 페이지로 리다이렉트) |
+| `GET` | `/slack/oauth/callback` | Slack OAuth 콜백 (code → webhook URL 저장) |
+| `POST` | `/slack/send` | Slack 알림 수동 발송 (테스트용) |
 
 ---
 
@@ -311,7 +219,7 @@ Base URL: `https://todays-tech-tt-production.up.railway.app/api/v1`
 | Server (Express + cron) | Railway | `railway.json` (NIXPACKS 빌더) |
 | Database (PostgreSQL) | Supabase | Session pooler (migrate) + Transaction pooler (runtime) |
 
-**Railway 환경변수:** `DATABASE_URL`, `DIRECT_URL`, `OPENAI_API_KEY`, `PORT`, `WEB_ORIGIN`, `SITE_URL`, `TZ=Asia/Seoul`
+**Railway 환경변수:** `DATABASE_URL`, `DIRECT_URL`, `OPENAI_API_KEY`, `PORT`, `WEB_ORIGIN`, `SITE_URL`, `TZ=Asia/Seoul`, `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SERVER_URL`
 
 **Vercel 환경변수:** `NEXT_PUBLIC_API_BASE_URL`
 
@@ -329,3 +237,6 @@ Base URL: `https://todays-tech-tt-production.up.railway.app/api/v1`
 | `SITE_URL` | Railway | | Slack 알림 내 링크 베이스 URL |
 | `TZ` | Railway | ✅ | `Asia/Seoul` (cron KST 기준 필수) |
 | `NEXT_PUBLIC_API_BASE_URL` | Vercel | ✅ | API 서버 주소 (Railway 도메인) |
+| `SLACK_CLIENT_ID` | Railway | | Slack 앱 Client ID |
+| `SLACK_CLIENT_SECRET` | Railway | | Slack 앱 Client Secret |
+| `SERVER_URL` | Railway | | 서버 공개 URL (Slack OAuth redirect_uri 기준) |

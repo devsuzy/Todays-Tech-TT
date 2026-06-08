@@ -12,12 +12,12 @@
   - [x] 내일 피드 카드 클릭 시 피드 상세보기 페이지로 이동
   - [x] 금일 기준으로 내일 피드는 미리 파서 해둘 것
   - [x] 내일 피드는 금일 아카이브에 뜨지 않음
-- [] Slack Bot 생성하기
+- [x] Slack Bot 생성하기
   - [x] API — POST /api/v1/slack/subscribe, DELETE /api/v1/slack/unsubscribe
   - [x] 백엔드 — slack-notify.ts 알림 발송 Job (매일 09:00 KST cron 등록)
   - [x] UI — 헤더 벨 아이콘 클릭 시 Popover로 구독 폼 표시 (BellPopover + SlackSubscribeCard)
-  - [] ⚠️ 서버 배포 후 진행: SITE_URL 환경변수 설정 (Slack 메시지 내 피드 링크용)
-  - [] ⚠️ 서버 배포 후 진행: 실제 Slack Webhook URL 연결 및 발송 테스트
+  - [x] ⚠️ 서버 배포 후 진행: SITE_URL 환경변수 설정 (Slack 메시지 내 피드 링크용)
+  - [x] ⚠️ 서버 배포 후 진행: 실제 Slack Webhook URL 연결 및 발송 테스트
 - [] 서버 배포
   - [x] Supabase — 프로젝트 생성 & Connection Method 확인
   - [x] Railway — GitHub repo 연결 & 환경변수 설정
@@ -26,7 +26,7 @@
   - [x] Vercel — web 배포, GitHub repo 연결
   - [x] Vercel — 배포 완료 후 도메인 확인 → Railway WEB_ORIGIN, SITE_URL 업데이트
   - [] 크론잡 동작 확인 (Railway 로그에서 KST 06~09시 파이프라인 실행 여부)
-  - [] Slack 구독 테스트 — 실 Webhook URL로 구독 등록 후 발송 확인
+  - [x] Slack 구독 테스트 — 실 Webhook URL로 구독 등록 후 발송 확인
 
 ### p2 (추후 고도화/백로그, 1차 출시 이후)
 - [] 회원가입 및 로그인 기능 (OAuth 2.0)
