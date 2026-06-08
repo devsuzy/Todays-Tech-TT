@@ -35,14 +35,9 @@ export function SlackSubscribeCard() {
         </p>
       ) : (
         <>
-          <a href={slackOAuthUrl} className="inline-block">
+          <a href={slackOAuthUrl} className="inline-block px-4 py-2 bg-primary text-white rounded hover:bg-primary/80 transition font-medium">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              alt="Add to Slack"
-              height="40"
-              width="139"
-              src="https://platform.slack-edge.com/img/add_to_slack.png"
-            />
+            Add to Slack
           </a>
           {status === "error" && (
             <p className="text-xs text-destructive">
