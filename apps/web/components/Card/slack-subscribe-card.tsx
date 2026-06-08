@@ -30,7 +30,7 @@ export function SlackSubscribeCard() {
       </p>
 
       {status === "connected" ? (
-        <p className="text-sm font-medium text-green-600">
+        <p className="text-sm font-medium">
           Slack 채널이 연동되었습니다! 🎉
         </p>
       ) : (
