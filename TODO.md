@@ -19,12 +19,12 @@
   - [] ⚠️ 서버 배포 후 진행: SITE_URL 환경변수 설정 (Slack 메시지 내 피드 링크용)
   - [] ⚠️ 서버 배포 후 진행: 실제 Slack Webhook URL 연결 및 발송 테스트
 - [] 서버 배포
-  - [] Supabase — 프로젝트 생성 & Transaction pooler URI 복사 (리전: Northeast Asia)
-  - [] Railway — GitHub repo 연결 & 환경변수 7개 입력 (DATABASE_URL, OPENAI_API_KEY, PORT, WEB_ORIGIN, SITE_URL, TZ, NODE_ENV)
-  - [] Railway — 빌드 & 배포 확인 (Prisma migrate 자동 실행, /health 응답 확인)
-  - [] Railway — DB 시드 실행: `node apps/server/dist/prisma/seed.js`
-  - [] Vercel — GitHub repo 연결, Root Directory: apps/web, NEXT_PUBLIC_API_BASE_URL 설정
-  - [] Vercel — 배포 완료 후 도메인 확인 → Railway WEB_ORIGIN, SITE_URL 업데이트 & Redeploy
+  - [x] Supabase — 프로젝트 생성 & Connection Method 확인
+  - [x] Railway — GitHub repo 연결 & 환경변수 설정
+  - [x] Railway — 빌드 & 배포 확인 (Prisma migrate 자동 실행, /health 응답 확인)
+  - [x] Railway — DB 시드 실행
+  - [x] Vercel — web 배포, GitHub repo 연결
+  - [x] Vercel — 배포 완료 후 도메인 확인 → Railway WEB_ORIGIN, SITE_URL 업데이트
   - [] 크론잡 동작 확인 (Railway 로그에서 KST 06~09시 파이프라인 실행 여부)
   - [] Slack 구독 테스트 — 실 Webhook URL로 구독 등록 후 발송 확인
 
