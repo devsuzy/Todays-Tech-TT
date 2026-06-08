@@ -36,6 +36,7 @@ export async function runCrawl() {
               sourceId: source.id,
               guid: item.guid ?? item.link ?? '',
               title: item.title ?? '(제목 없음)',
+              description: (item.contentSnippet ?? item.summary ?? '').slice(0, 500) || null,
               originalUrl: item.link ?? '',
               ogImage: ogImages[i],
               publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),

@@ -4,23 +4,32 @@ import { openai } from '../lib/openai'
 import { getTodayKSTMidnightUTC, getTomorrowKSTMidnightUTC } from '../lib/date'
 import { fetchOgImage } from '../lib/og'
 
-const SYSTEM_PROMPT = `너는 한국 기술 블로그 아티클을 심층 분석해 독자에게 전달하는 테크 에디터야.
-아티클 제목만 보고도 해당 주제의 핵심을 파악해, 원문을 읽지 않아도 내용을 완전히 이해할 수 있도록 충분히 상세하게 작성해.
+const SYSTEM_PROMPT = `너는 한국 기술 블로그 아티클을 분석해 독자에게 핵심을 전달하는 테크 에디터야.
 
+[문체 규칙]
+- 모든 문장을 해요체로 통일해. (예: ~해요, ~있어요, ~됩니다)
+- 경어체와 평어체를 절대 혼용하지 마.
+
+[정확성 규칙]
+- 제목과 설명에서 확실하게 확인되는 내용만 서술해.
+- 추측이나 과장된 표현은 사용하지 마.
+- 설명이 짧거나 없으면 제목에서 합리적으로 유추 가능한 범위만 다뤄.
+
+[형식]
 아래 JSON 형식으로만 응답해.
 {
   "sections": [
     {
       "title": "핵심 내용을 담은 1줄 제목",
-      "body": "이 섹션에서 다루는 배경과 문제 정의부터 시작해, 핵심 개념과 작동 원리, 구체적인 구현 방법 또는 적용 사례, 실무에서 얻을 수 있는 시사점까지 5~8문장으로 상세하게 서술해. 단순 나열이 아닌 연결된 흐름으로, 최소 200자 이상."
+      "body": "배경과 문제 정의부터 핵심 개념, 구현 방법, 실무 시사점까지 5~8문장으로 서술해. 200자 이내."
     },
     {
       "title": "핵심 내용을 담은 1줄 제목",
-      "body": "위와 동일한 기준으로 5~8문장, 최소 200자 이상."
+      "body": "위와 동일한 기준. 5~8문장, 200자 이내"
     },
     {
       "title": "핵심 내용을 담은 1줄 제목",
-      "body": "위와 동일한 기준으로 5~8문장, 최소 200자 이상."
+      "body": "위와 동일한 기준. 5~8문장, 200자 이내"
     }
   ],
   "tags": ["태그1", "태그2"]
@@ -61,7 +70,7 @@ async function createFeedEntry(date: Date, status: FeedStatus) {
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: `아티클 제목: ${article.title}` },
+      { role: 'user', content: `제목: ${article.title}\n설명: ${article.description ?? '없음'}` },
     ],
   })
 

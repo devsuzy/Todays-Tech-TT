@@ -45,7 +45,9 @@ export default async function FeedDetailPage({
         {/* Feed Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold md:text-xl">{formatKSTDateLong(feed.date)}</h3>
-          <ShareButton />
+          {feed.status === 'PUBLISHED' && (
+            <ShareButton />
+          )}
         </div>
 
         {/* Article Image */}
@@ -112,7 +114,7 @@ export default async function FeedDetailPage({
         {/* Content Sections */}
         <div className="space-y-8 md:space-y-10">
           <div className="space-y-2">
-            <div className="flex text-blue-500 items-center gap-2">
+            <div className="flex text-primary items-center gap-2">
               <BotMessageSquare />
               <p className="font-semibold text-sm md:text-base">AI 요약</p>
             </div>

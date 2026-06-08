@@ -24,6 +24,7 @@ model Article {
   source      RssSource @relation(fields: [sourceId], references: [id])
   guid        String    @unique
   title       String
+  description String?
   originalUrl String
   ogImage     String?
   publishedAt DateTime
