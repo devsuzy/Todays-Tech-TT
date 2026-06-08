@@ -43,6 +43,21 @@ router.delete('/unsubscribe', async (req, res) => {
   res.json({ ok: true })
 })
 
+// GET /api/v1/slack/oauth/start — Slack OAuth 시작 (클라이언트 ID를 서버에서 처리)
+router.get('/oauth/start', (_req, res) => {
+  const clientId = process.env.SLACK_CLIENT_ID
+  const serverUrl = process.env.SERVER_URL ?? 'http://localhost:4000'
+
+  if (!clientId) {
+    return res.status(500).json({ error: 'SLACK_CLIENT_ID not configured' })
+  }
+
+  const redirectUri = encodeURIComponent(`${serverUrl}/api/v1/slack/oauth/callback`)
+  res.redirect(
+    `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=incoming-webhook&redirect_uri=${redirectUri}`,
+  )
+})
+
 // GET /api/v1/slack/oauth/callback — Slack OAuth 인증 콜백
 router.get('/oauth/callback', async (req, res) => {
   const { code, error } = req.query

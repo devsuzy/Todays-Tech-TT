@@ -1,23 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
-const SLACK_CLIENT_ID = process.env.NEXT_PUBLIC_SLACK_CLIENT_ID ?? "";
 
-const slackOAuthUrl = `https://slack.com/oauth/v2/authorize?client_id=${SLACK_CLIENT_ID}&scope=incoming-webhook&redirect_uri=${encodeURIComponent(`${API_BASE}/api/v1/slack/oauth/callback`)}`;
+const slackOAuthUrl = `${API_BASE}/api/v1/slack/oauth/start`;
 
 type Status = "idle" | "connected" | "error";
 
-export function SlackSubscribeCard() {
-  const [status, setStatus] = useState<Status>("idle");
+function getInitialStatus(): Status {
+  if (typeof window === "undefined") return "idle";
+  const slack = new URLSearchParams(window.location.search).get("slack");
+  if (slack === "connected") return "connected";
+  if (slack === "error") return "error";
+  return "idle";
+}
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const slack = params.get("slack");
-    if (slack === "connected") setStatus("connected");
-    else if (slack === "error") setStatus("error");
-  }, []);
+export function SlackSubscribeCard() {
+  const [status] = useState<Status>(getInitialStatus);
 
   return (
     <div className="border rounded-lg p-6 bg-background space-y-4">
