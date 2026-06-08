@@ -29,11 +29,13 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
 
   const titleText = originalUrl ? `*<${originalUrl}|${title}>*` : `*${title}*`
 
+  const sectionsText = feed.sections.map((s) => `${s.order}. *${s.title}*`).join('\n')
+
   const articleSection: Record<string, unknown> = {
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `${titleText}${sourceName ? `\n출처: ${sourceName}` : ''}`,
+      text: `${titleText}${sourceName ? `\n출처: ${sourceName}` : ''}\n\n${sectionsText}`,
     },
   }
   if (ogImage) {
@@ -44,14 +46,6 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
     }
   }
 
-  const sectionBlocks = feed.sections.map((s) => ({
-    type: 'section',
-    text: {
-      type: 'mrkdwn',
-      text: `${s.order}. *${s.title}*`,
-    },
-  }))
-
   return {
     blocks: [
       {
@@ -59,7 +53,6 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
         text: { type: 'plain_text', text: `📰 오늘의 Today's Tech (${dateStr})`, emoji: true },
       },
       articleSection,
-      ...sectionBlocks,
       {
         type: 'actions',
         elements: [
