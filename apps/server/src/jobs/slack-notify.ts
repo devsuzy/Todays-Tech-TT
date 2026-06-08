@@ -25,12 +25,15 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
   const title = feed.article?.title ?? '오늘의 피드'
   const sourceName = feed.article?.source?.name ?? ''
   const ogImage = feed.article?.ogImage ?? null
+  const originalUrl = feed.article?.originalUrl ?? null
+
+  const titleText = originalUrl ? `*<${originalUrl}|${title}>*` : `*${title}*`
 
   const articleSection: Record<string, unknown> = {
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `*${title}*${sourceName ? `\n출처: ${sourceName}` : ''}`,
+      text: `${titleText}${sourceName ? `\n출처: ${sourceName}` : ''}`,
     },
   }
   if (ogImage) {
@@ -45,7 +48,7 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `${s.order}. *${s.title}*\n${s.body}`,
+      text: `${s.order}. *${s.title}*`,
     },
   }))
 
@@ -57,13 +60,12 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
       },
       articleSection,
       ...sectionBlocks,
-      { type: 'divider' },
       {
         type: 'actions',
         elements: [
           {
             type: 'button',
-            text: { type: 'plain_text', text: '전체 읽기', emoji: true },
+            text: { type: 'plain_text', text: '자세히 보기', emoji: true },
             url: feedUrl,
             style: 'primary',
           },
