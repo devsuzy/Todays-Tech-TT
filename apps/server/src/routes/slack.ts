@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
+import { runSlackNotify } from '../jobs/slack-notify'
 
 const router = Router()
 
@@ -40,6 +41,16 @@ router.delete('/unsubscribe', async (req, res) => {
   })
 
   res.json({ ok: true })
+})
+
+// POST /api/v1/slack/send — 수동 발송 트리거
+router.post('/send', async (_req, res) => {
+  try {
+    const result = await runSlackNotify()
+    res.json({ ok: true, ...(result ?? { sent: 0, failed: 0 }) })
+  } catch (err) {
+    res.status(500).json({ ok: false, error: String(err) })
+  }
 })
 
 export default router

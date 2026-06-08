@@ -93,7 +93,8 @@ export async function runSlackNotify() {
   const dateStr = utcToKSTDateString(feed.date)
   const message = buildSlackMessage(feed, dateStr)
 
-  let successCount = 0
+  let sent = 0
+  let failed = 0
   for (const sub of subscribers) {
     try {
       const res = await fetch(sub.webhookUrl, {
@@ -102,16 +103,19 @@ export async function runSlackNotify() {
         body: JSON.stringify(message),
       })
       if (res.ok) {
-        successCount++
+        sent++
       } else {
         console.error(`[slack-notify] Failed (${res.status}) for subscriber id=${sub.id}`)
+        failed++
       }
     } catch (e) {
       console.error(`[slack-notify] Error for subscriber id=${sub.id}:`, e)
+      failed++
     }
   }
 
-  console.log(`[slack-notify] Done. ${successCount}/${subscribers.length} sent.`)
+  console.log(`[slack-notify] Done. ${sent}/${subscribers.length} sent.`)
+  return { sent, failed }
 }
 
 if (require.main === module) {
