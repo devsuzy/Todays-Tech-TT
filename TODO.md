@@ -22,7 +22,7 @@
   - [] Supabase — 프로젝트 생성 & Transaction pooler URI 복사 (리전: Northeast Asia)
   - [] Railway — GitHub repo 연결 & 환경변수 7개 입력 (DATABASE_URL, OPENAI_API_KEY, PORT, WEB_ORIGIN, SITE_URL, TZ, NODE_ENV)
   - [] Railway — 빌드 & 배포 확인 (Prisma migrate 자동 실행, /health 응답 확인)
-  - [] Railway — DB 시드 실행 (RssSource 5개 + Tag 8개)
+  - [] Railway — DB 시드 실행: `node apps/server/dist/prisma/seed.js`
   - [] Vercel — GitHub repo 연결, Root Directory: apps/web, NEXT_PUBLIC_API_BASE_URL 설정
   - [] Vercel — 배포 완료 후 도메인 확인 → Railway WEB_ORIGIN, SITE_URL 업데이트 & Redeploy
   - [] 크론잡 동작 확인 (Railway 로그에서 KST 06~09시 파이프라인 실행 여부)
