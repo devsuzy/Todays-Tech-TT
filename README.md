@@ -166,6 +166,16 @@ Base URL: `https://todays-tech-tt-production.up.railway.app/api/v1`
 
 ---
 
+## Slack 구독
+
+헤더 벨 아이콘 클릭 → **Add to Slack** 버튼 클릭 → Slack에서 워크스페이스와 채널 선택 → 허용
+
+연동이 완료되면 매일 09:00(KST)에 선택한 채널로 오늘의 피드가 자동 발송됩니다.
+
+> 수동 발송(테스트용): `POST /api/v1/slack/send`
+
+---
+
 ## 일일 파이프라인
 
 매일 KST 기준으로 4단계 cron이 자동 실행됩니다.
@@ -199,7 +209,7 @@ Base URL: `https://todays-tech-tt-production.up.railway.app/api/v1`
 
 | 모델 | 설명 |
 |------|------|
-| `RssSource` | 크롤링할 기술 블로그 소스 (5개: 토스, 당근, 우아한형제들, 카카오, 라인) |
+| `RssSource` | 크롤링할 기술 블로그 소스 (토스, 당근, 우아한형제들, 카카오, 라인 등 국내 유명 기술 블로그) |
 | `Article` | RSS에서 수집된 원문 아티클 (`guid` 고유, `ogImage` 포함) |
 | `Feed` | 하루 1개 피드 (`date` 고유, `DRAFT`/`PUBLISHED` 상태) |
 | `FeedSection` | 피드 내 요약 섹션 (피드당 3개, `title` + `body`) |
