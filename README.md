@@ -9,7 +9,9 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-gpt--4o--mini-412991?logo=openai)
 ![Turborepo](https://img.shields.io/badge/Turborepo-2-EF4444?logo=turborepo)
 
-**🌐 Live:** https://todays-tech-tt-web.vercel.app
+**🌐 Live:** https://todays-tech-tt-web.vercel.app 
+
+**🔔 Slack Subscribe** https://todays-tech-tt-production.up.railway.app/api/v1/slack/oauth/start
 
 ---
 

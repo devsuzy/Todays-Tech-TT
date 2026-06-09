@@ -25,9 +25,6 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
   const title = feed.article?.title ?? '오늘의 피드'
   const sourceName = feed.article?.source?.name ?? ''
   const ogImage = feed.article?.ogImage ?? null
-  const originalUrl = feed.article?.originalUrl ?? null
-
-  const titleText = originalUrl ? `*<${originalUrl}|${title}>*` : `*${title}*`
 
   const sectionsText = feed.sections.map((s) => `${s.order}. *${s.title}*`).join('\n')
 
@@ -35,7 +32,7 @@ function buildSlackMessage(feed: NonNullable<FeedWithRelations>, dateStr: string
     type: 'section',
     text: {
       type: 'mrkdwn',
-      text: `${titleText}${sourceName ? `\n출처: ${sourceName}` : ''}\n\n${sectionsText}`,
+      text: `*${title}*${sourceName ? `\n출처: ${sourceName}` : ''}\n\n${sectionsText}`,
     },
   }
   if (ogImage) {

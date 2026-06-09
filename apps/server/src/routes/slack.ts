@@ -99,6 +99,25 @@ router.get('/oauth/callback', async (req, res) => {
     })
 
     console.log(`[slack-oauth] Connected: ${data.incoming_webhook.channel}`)
+
+    const siteUrl = process.env.SITE_URL ?? 'http://localhost:3000'
+    const welcomeMsg = {
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*Today's Tech 알림 봇 설치 완료* 🎉\n매일 아침 9시, 오늘의 기술 트렌드를 이 채널로 보내드릴게요.\n\n<${siteUrl}|Today's Tech>`,
+          },
+        },
+      ],
+    }
+    fetch(data.incoming_webhook.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(welcomeMsg),
+    }).catch((e) => console.error('[slack-oauth] Welcome message failed:', e))
+
     res.redirect(`${webOrigin}/archive?slack=connected`)
   } catch (err) {
     console.error('[slack-oauth] Error:', err)
