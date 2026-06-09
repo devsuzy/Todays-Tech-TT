@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { getTomorrowFeed } from "@/lib/api";
 import type { FeedDetail } from "@/types";
 import { LockKeyhole, Sparkles, ChevronRight } from "lucide-react";
+import ClipLoader from "react-spinners/ClipLoader";
 
 type PreviewState = "LOCKED" | "WATCHING" | "UNLOCKED";
 
@@ -135,9 +136,9 @@ export function TomorrowPreview({ tomorrowDate }: Props) {
           {tomorrowFeed ? (
             <TomorrowFeedCard feed={tomorrowFeed} tomorrowDate={tomorrowDate} />
           ) : (
-            <p className="text-sm text-muted-foreground">
-              내일 피드를 준비 중입니다.
-            </p>
+            <div className="flex justify-center py-4 animate-pulse col-span-full">
+              <ClipLoader color="#008080" />
+            </div>
           )}
         </div>
       )}
