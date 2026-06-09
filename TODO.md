@@ -18,14 +18,14 @@
   - [x] UI — 헤더 벨 아이콘 클릭 시 Popover로 구독 폼 표시 (BellPopover + SlackSubscribeCard)
   - [x] ⚠️ 서버 배포 후 진행: SITE_URL 환경변수 설정 (Slack 메시지 내 피드 링크용)
   - [x] ⚠️ 서버 배포 후 진행: 실제 Slack Webhook URL 연결 및 발송 테스트
-- [] 서버 배포
+- [x] 서버 배포
   - [x] Supabase — 프로젝트 생성 & Connection Method 확인
   - [x] Railway — GitHub repo 연결 & 환경변수 설정
   - [x] Railway — 빌드 & 배포 확인 (Prisma migrate 자동 실행, /health 응답 확인)
   - [x] Railway — DB 시드 실행
   - [x] Vercel — web 배포, GitHub repo 연결
   - [x] Vercel — 배포 완료 후 도메인 확인 → Railway WEB_ORIGIN, SITE_URL 업데이트
-  - [] 크론잡 동작 확인 (Railway 로그에서 KST 06~09시 파이프라인 실행 여부)
+  - [x] 크론잡 동작 확인 (Railway 로그에서 KST 06~09시 파이프라인 실행 여부)
   - [x] Slack 구독 테스트 — 실 Webhook URL로 구독 등록 후 발송 확인
 
 ### p2 (추후 고도화/백로그, 1차 출시 이후)

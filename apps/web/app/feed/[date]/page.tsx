@@ -1,7 +1,34 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getFeed } from "@/lib/api";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ date: string }>;
+}): Promise<Metadata> {
+  const { date } = await params;
+  const feed = await getFeed(date);
+  if (!feed) return { title: "TT - Today's Tech" };
+
+  const title = feed.article?.title ?? "Today's Tech";
+  const ogImage = feed.article?.ogImage ?? '/images/og-image.png';
+
+  return {
+    title: `${title} | TT`,
+    openGraph: {
+      title,
+      images: [{ url: ogImage }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      images: [ogImage],
+    },
+  };
+}
 import { FeedSectionItem } from "@/components/feed-section-item";
 import { TomorrowPreview } from "@/components/tomorrow-preview";
 import { Header } from "@/components/Layout/header";
