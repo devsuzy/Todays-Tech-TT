@@ -1,14 +1,23 @@
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
+const KST_DAYS = ['일', '월', '화', '수', '목', '금', '토']
+
+function kstComponents(dateStr: string) {
+  const kst = new Date(new Date(dateStr).getTime() + 9 * 60 * 60 * 1000)
+  return {
+    y: kst.getUTCFullYear(),
+    m: kst.getUTCMonth() + 1,
+    d: kst.getUTCDate(),
+    dow: KST_DAYS[kst.getUTCDay()],
+  }
+}
 
 export function formatKSTDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return format(date, 'yyyy.MM.dd (EEE)', { locale: ko })
+  const { y, m, d, dow } = kstComponents(dateStr)
+  return `${y}.${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')} (${dow})`
 }
 
 export function formatKSTDateLong(dateStr: string): string {
-  const date = new Date(dateStr)
-  return format(date, 'yyyy년 M월 d일 (EEE)', { locale: ko })
+  const { y, m, d, dow } = kstComponents(dateStr)
+  return `${y}년 ${m}월 ${d}일 (${dow})`
 }
 
 export function toKSTDateString(dateStr: string): string {
