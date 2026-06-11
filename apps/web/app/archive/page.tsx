@@ -1,6 +1,7 @@
 import { getFeeds, getTags } from "@/lib/api";
 import { TagFilterBar } from "@/components/Tag/tag-filter-bar";
 import { Header } from "@/components/Layout/header";
+import { Footer } from "@/components/Layout/footer";
 import { FeedGrid } from "@/components/Layout/feed-grid";
 
 export default async function ArchivePage({
@@ -18,6 +19,7 @@ export default async function ArchivePage({
         <TagFilterBar tags={tags} selectedTag={tag} />
         <FeedGrid initialFeeds={feeds} tag={tag} />
       </main>
+      <Footer />
     </div>
   );
 }
