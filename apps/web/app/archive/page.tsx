@@ -15,7 +15,7 @@ export default async function ArchivePage({
   return (
     <div className="min-h-screen bg-muted/50">
       <Header />
-      <main className="max-w-2xl mx-auto px-4 py-8 md:max-w-3xl xl:max-w-5xl">
+      <main className="max-w-2xl mx-auto px-4 py-8 md:max-w-3xl xl:max-w-5xl min-h-[calc(100vh-3.5rem)]">
         <TagFilterBar tags={tags} selectedTag={tag} />
         <FeedGrid initialFeeds={feeds} tag={tag} />
       </main>
