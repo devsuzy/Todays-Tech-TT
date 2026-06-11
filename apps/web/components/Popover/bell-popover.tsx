@@ -24,7 +24,7 @@ export function BellPopover() {
         aria-label="Slack 구독"
         className="cursor-pointer size-8 flex items-center justify-center"
       >
-        <BellRing className="w-4 h-4 md:w-6 md:h-6" />
+        <BellRing className="w-5 h-5 md:w-6 md:h-6" />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <SlackSubscribeCard />
