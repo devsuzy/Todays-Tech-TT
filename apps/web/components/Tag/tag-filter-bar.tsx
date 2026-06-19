@@ -1,15 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Tag } from "@/types";
 
 interface Props {
   tags: Tag[];
-  selectedTag?: string;
 }
 
-export function TagFilterBar({ tags, selectedTag }: Props) {
+export function TagFilterBar({ tags }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedTag = searchParams.get("tag") ?? undefined;
 
   function handleTagClick(slug?: string) {
     router.push(slug ? `/archive?tag=${slug}` : "/archive");
