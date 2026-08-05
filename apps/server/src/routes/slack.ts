@@ -1,58 +1,91 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
+import { asyncHandler } from '../lib/async-handler'
 import { runSlackNotify } from '../jobs/slack-notify'
 
 const router = Router()
 
-// POST /api/v1/slack/subscribe
-router.post('/subscribe', async (req, res) => {
-  const { webhookUrl } = req.body
-  if (
-    typeof webhookUrl !== 'string' ||
-    !webhookUrl.startsWith('https://hooks.slack.com/services/')
-  ) {
-    return res.status(400).json({ error: 'INVALID_WEBHOOK_URL' })
-  }
+const SLACK_WEBHOOK_PREFIX = 'https://hooks.slack.com/services/'
 
-  await prisma.slackSubscriber.upsert({
+// 상수가 아니라 함수 — SERVER_URL 을 모듈 로드 시점이 아니라 요청 시점에 읽어야 한다
+const oauthRedirectUri = () =>
+  `${process.env.SERVER_URL ?? 'http://localhost:4000'}/api/v1/slack/oauth/callback`
+
+function isSlackWebhookUrl(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith(SLACK_WEBHOOK_PREFIX)
+}
+
+/** 신규 등록과 재구독 모두 isActive: true 로 맞춘다 */
+function activateSubscriber(webhookUrl: string) {
+  return prisma.slackSubscriber.upsert({
     where: { webhookUrl },
     create: { webhookUrl, isActive: true },
     update: { isActive: true },
   })
+}
 
-  res.json({ ok: true })
-})
+/** OAuth 연결 직후 해당 채널로 보내는 환영 메시지 */
+function buildWelcomeMessage() {
+  return {
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Today's Tech 알림 봇 설치 완료* 🎉\n매일 아침 9시, 오늘의 기술 트렌드를 이 채널로 보내드릴게요.\n\n<${process.env.SITE_URL ?? 'http://localhost:3000'}|Today's Tech>`,
+        },
+      },
+    ],
+  }
+}
+
+// POST /api/v1/slack/subscribe
+router.post(
+  '/subscribe',
+  asyncHandler(async (req, res) => {
+    const { webhookUrl } = req.body
+    if (!isSlackWebhookUrl(webhookUrl)) {
+      return res.status(400).json({ error: 'INVALID_WEBHOOK_URL' })
+    }
+
+    await activateSubscriber(webhookUrl)
+
+    res.json({ ok: true })
+  }),
+)
 
 // DELETE /api/v1/slack/unsubscribe
-router.delete('/unsubscribe', async (req, res) => {
-  const { webhookUrl } = req.body
-  if (typeof webhookUrl !== 'string') {
-    return res.status(400).json({ error: 'INVALID_WEBHOOK_URL' })
-  }
+router.delete(
+  '/unsubscribe',
+  asyncHandler(async (req, res) => {
+    const { webhookUrl } = req.body
+    if (typeof webhookUrl !== 'string') {
+      return res.status(400).json({ error: 'INVALID_WEBHOOK_URL' })
+    }
 
-  const subscriber = await prisma.slackSubscriber.findUnique({ where: { webhookUrl } })
-  if (!subscriber) {
-    return res.status(404).json({ error: 'NOT_FOUND' })
-  }
+    const subscriber = await prisma.slackSubscriber.findUnique({ where: { webhookUrl } })
+    if (!subscriber) {
+      return res.status(404).json({ error: 'NOT_FOUND' })
+    }
 
-  await prisma.slackSubscriber.update({
-    where: { webhookUrl },
-    data: { isActive: false },
-  })
+    await prisma.slackSubscriber.update({
+      where: { webhookUrl },
+      data: { isActive: false },
+    })
 
-  res.json({ ok: true })
-})
+    res.json({ ok: true })
+  }),
+)
 
 // GET /api/v1/slack/oauth/start — Slack OAuth 시작 (클라이언트 ID를 서버에서 처리)
 router.get('/oauth/start', (_req, res) => {
   const clientId = process.env.SLACK_CLIENT_ID
-  const serverUrl = process.env.SERVER_URL ?? 'http://localhost:4000'
 
   if (!clientId) {
     return res.status(500).json({ error: 'SLACK_CLIENT_ID not configured' })
   }
 
-  const redirectUri = encodeURIComponent(`${serverUrl}/api/v1/slack/oauth/callback`)
+  const redirectUri = encodeURIComponent(oauthRedirectUri())
   res.redirect(
     `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=incoming-webhook&redirect_uri=${redirectUri}`,
   )
@@ -62,7 +95,6 @@ router.get('/oauth/start', (_req, res) => {
 router.get('/oauth/callback', async (req, res) => {
   const { code, error } = req.query
   const webOrigin = process.env.WEB_ORIGIN ?? 'http://localhost:3000'
-  const serverUrl = process.env.SERVER_URL ?? 'http://localhost:4000'
 
   if (error || typeof code !== 'string') {
     return res.redirect(`${webOrigin}/archive?slack=error`)
@@ -73,7 +105,7 @@ router.get('/oauth/callback', async (req, res) => {
       code,
       client_id: process.env.SLACK_CLIENT_ID ?? '',
       client_secret: process.env.SLACK_CLIENT_SECRET ?? '',
-      redirect_uri: `${serverUrl}/api/v1/slack/oauth/callback`,
+      redirect_uri: oauthRedirectUri(),
     })
 
     const tokenRes = await fetch('https://slack.com/api/oauth.v2.access', {
@@ -92,30 +124,14 @@ router.get('/oauth/callback', async (req, res) => {
       return res.redirect(`${webOrigin}/archive?slack=error`)
     }
 
-    await prisma.slackSubscriber.upsert({
-      where: { webhookUrl: data.incoming_webhook.url },
-      create: { webhookUrl: data.incoming_webhook.url, isActive: true },
-      update: { isActive: true },
-    })
+    await activateSubscriber(data.incoming_webhook.url)
 
     console.log(`[slack-oauth] Connected: ${data.incoming_webhook.channel}`)
 
-    const siteUrl = process.env.SITE_URL ?? 'http://localhost:3000'
-    const welcomeMsg = {
-      blocks: [
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*Today's Tech 알림 봇 설치 완료* 🎉\n매일 아침 9시, 오늘의 기술 트렌드를 이 채널로 보내드릴게요.\n\n<${siteUrl}|Today's Tech>`,
-          },
-        },
-      ],
-    }
     fetch(data.incoming_webhook.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(welcomeMsg),
+      body: JSON.stringify(buildWelcomeMessage()),
     }).catch((e) => console.error('[slack-oauth] Welcome message failed:', e))
 
     res.redirect(`${webOrigin}/archive?slack=connected`)

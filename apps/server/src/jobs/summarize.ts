@@ -47,6 +47,27 @@ type SummarizeResult = {
 
 type FeedStatus = 'DRAFT' | 'PUBLISHED'
 
+/** 로그용 날짜 표기 (UTC 자정 기준) */
+function dateLabel(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+/** 허용 태그 목록에 있는 이름만 피드에 연결한다 (대소문자 무시) */
+async function linkTags(feedId: number, tagNames: string[]) {
+  for (const tagName of tagNames) {
+    const tag = await prisma.tag.findFirst({
+      where: { name: { equals: tagName, mode: 'insensitive' } },
+    })
+    if (!tag) continue
+
+    await prisma.feedTag.upsert({
+      where: { feedId_tagId: { feedId, tagId: tag.id } },
+      update: {},
+      create: { feedId, tagId: tag.id },
+    })
+  }
+}
+
 async function createFeedEntry(date: Date, status: FeedStatus) {
   let article = await prisma.article.findFirst({
     where: { feed: null },
@@ -55,11 +76,11 @@ async function createFeedEntry(date: Date, status: FeedStatus) {
   })
 
   if (!article) {
-    console.log(`[summarize] No unprocessed articles for ${date.toISOString().slice(0, 10)}`)
+    console.log(`[summarize] No unprocessed articles for ${dateLabel(date)}`)
     return
   }
 
-  console.log(`[summarize] Processing for ${date.toISOString().slice(0, 10)} (${status}): "${article.title}"`)
+  console.log(`[summarize] Processing for ${dateLabel(date)} (${status}): "${article.title}"`)
 
   if (!article.ogImage) {
     const ogImage = await fetchOgImage(article.originalUrl)
@@ -98,40 +119,27 @@ async function createFeedEntry(date: Date, status: FeedStatus) {
     },
   })
 
-  for (const tagName of result.tags) {
-    const tag = await prisma.tag.findFirst({
-      where: { name: { equals: tagName, mode: 'insensitive' } },
-    })
-    if (tag) {
-      await prisma.feedTag.upsert({
-        where: { feedId_tagId: { feedId: feed.id, tagId: tag.id } },
-        update: {},
-        create: { feedId: feed.id, tagId: tag.id },
-      })
-    }
+  await linkTags(feed.id, result.tags)
+
+  console.log(`[summarize] Feed created for ${dateLabel(date)} (${status})`)
+}
+
+/** 해당 날짜에 피드가 없을 때만 생성한다 */
+async function createFeedIfAbsent(date: Date, status: FeedStatus, label: string) {
+  const existing = await prisma.feed.findUnique({ where: { date } })
+  if (existing) {
+    console.log(`[summarize] ${label}'s feed already exists (${dateLabel(date)})`)
+    return
   }
 
-  console.log(`[summarize] Feed created for ${date.toISOString().slice(0, 10)} (${status})`)
+  await createFeedEntry(date, status)
 }
 
 export async function runSummarize() {
   console.log('[summarize] Starting...')
 
-  const todayDate = getTodayKSTMidnightUTC()
-  const todayExists = await prisma.feed.findUnique({ where: { date: todayDate } })
-  if (todayExists) {
-    console.log(`[summarize] Today's feed already exists (${todayDate.toISOString().slice(0, 10)})`)
-  } else {
-    await createFeedEntry(todayDate, 'PUBLISHED')
-  }
-
-  const tomorrowDate = getTomorrowKSTMidnightUTC()
-  const tomorrowExists = await prisma.feed.findUnique({ where: { date: tomorrowDate } })
-  if (tomorrowExists) {
-    console.log(`[summarize] Tomorrow's feed already exists (${tomorrowDate.toISOString().slice(0, 10)})`)
-  } else {
-    await createFeedEntry(tomorrowDate, 'DRAFT')
-  }
+  await createFeedIfAbsent(getTodayKSTMidnightUTC(), 'PUBLISHED', 'Today')
+  await createFeedIfAbsent(getTomorrowKSTMidnightUTC(), 'DRAFT', 'Tomorrow')
 
   console.log('[summarize] Done.')
 }

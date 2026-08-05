@@ -1,10 +1,6 @@
 import 'dotenv/config'
 import { prisma } from '../lib/prisma'
-import { getTodayKSTMidnightUTC } from '../lib/date'
-
-function utcToKSTDateString(date: Date): string {
-  return new Date(date.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
-}
+import { getTodayKSTMidnightUTC, utcToKSTDateString } from '../lib/date'
 
 type FeedWithRelations = Awaited<ReturnType<typeof fetchTodayFeed>>
 

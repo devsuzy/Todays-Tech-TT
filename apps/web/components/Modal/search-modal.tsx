@@ -46,7 +46,10 @@ export function SearchModal() {
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, handleClose]);
 
-  const trimmedQuery = query.trim();
+  const hasQuery = query.trim().length > 0;
+  const showSkeleton = isLoading && hasQuery;
+  const showEmptyState = !isLoading && hasSearched && hasQuery && results.length === 0;
+  const showResults = !isLoading && hasQuery && results.length > 0;
 
   return (
     <>
@@ -88,7 +91,7 @@ export function SearchModal() {
             />
 
             {/* 결과 */}
-            {isLoading && trimmedQuery && (
+            {showSkeleton && (
               <div className="flex flex-col gap-4">
                 {[...Array(3)].map((_, i) => (
                   <Skeleton key={i} className="h-32 w-full rounded-lg" />
@@ -96,7 +99,7 @@ export function SearchModal() {
               </div>
             )}
 
-            {!isLoading && hasSearched && trimmedQuery && results.length === 0 && (
+            {showEmptyState && (
               <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
                 <MessageCircleQuestionMark />
                 <p className="text-center text-sm md:text-base">
@@ -105,7 +108,7 @@ export function SearchModal() {
               </div>
             )}
 
-            {!isLoading && trimmedQuery && results.length > 0 && (
+            {showResults && (
               <div className="grid gap-4 md:grid-cols-2">
                 {results.map((feed) => (
                   <div key={feed.id} onClick={handleClose}>

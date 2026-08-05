@@ -5,6 +5,13 @@ import { fetchOgImage } from '../lib/og'
 
 const parser = new RssParser()
 
+type RssItem = Awaited<ReturnType<typeof parser.parseURL>>['items'][number]
+
+/** guid가 없는 피드는 link를 식별자로 쓴다 */
+function guidOf(item: RssItem): string {
+  return item.guid ?? item.link ?? ''
+}
+
 export async function runCrawl() {
   console.log('[crawl] Starting RSS crawl...')
   const sources = await prisma.rssSource.findMany({ where: { isActive: true } })
@@ -17,7 +24,7 @@ export async function runCrawl() {
       // 신규 아이템만 추려낸 뒤 ogImage fetch를 병렬 처리
       const newItems: typeof feed.items = []
       for (const item of feed.items) {
-        const guid = item.guid ?? item.link ?? ''
+        const guid = guidOf(item)
         if (!guid) continue
         const existing = await prisma.article.findUnique({ where: { guid } })
         if (!existing) newItems.push(item)
@@ -34,7 +41,7 @@ export async function runCrawl() {
           prisma.article.create({
             data: {
               sourceId: source.id,
-              guid: item.guid ?? item.link ?? '',
+              guid: guidOf(item),
               title: item.title ?? '(제목 없음)',
               description: (item.contentSnippet ?? item.summary ?? '').slice(0, 500) || null,
               originalUrl: item.link ?? '',

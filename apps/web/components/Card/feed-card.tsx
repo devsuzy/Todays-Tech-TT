@@ -16,23 +16,13 @@ export function FeedCard({ feed }: Props) {
     <Link href={`/feed/${dateStr}`}>
       <div className="rounded-lg shadow-sm overflow-hidden bg-white transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
         <div className="relative w-full h-44">
-          {feed.article?.ogImage ? (
-            <Image
-              src={feed.article.ogImage}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 680px"
-            />
-          ) : (
-            <Image
-              src={"/images/thumbnail-default-img-1.png"}
-              alt=""
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 680px"
-            />
-          )}
+          <Image
+            src={feed.article?.ogImage || "/images/thumbnail-default-img-1.png"}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 680px"
+          />
         </div>
 
         <div className="p-5">
