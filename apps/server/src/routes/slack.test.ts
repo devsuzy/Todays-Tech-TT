@@ -138,6 +138,43 @@ describe('slack router', () => {
     )
   })
 
+  it('GET /oauth/start는 state를 발급해 URL과 쿠키에 함께 담는다', async () => {
+    vi.stubEnv('SLACK_CLIENT_ID', 'client-123')
+
+    const res = await fetch(`${baseUrl}/api/v1/slack/oauth/start`, { redirect: 'manual' })
+    const location = res.headers.get('location') ?? ''
+    const state = new URL(location).searchParams.get('state')
+
+    expect(state).toBeTruthy()
+    expect(res.headers.get('set-cookie')).toContain(`slack_oauth_state=${state}`)
+  })
+
+  it('GET /oauth/callback은 슬랙이 넘긴 실패 사유를 웹으로 전달한다', async () => {
+    vi.stubEnv('WEB_ORIGIN', 'https://example.com')
+
+    const res = await fetch(
+      `${baseUrl}/api/v1/slack/oauth/callback?error=invalid_team_for_non_distributed_app`,
+      { redirect: 'manual' }
+    )
+    expect(res.headers.get('location')).toBe(
+      'https://example.com/archive?slack=error&reason=invalid_team_for_non_distributed_app'
+    )
+  })
+
+  it('GET /oauth/callback은 state가 맞지 않으면 토큰 교환 없이 막는다', async () => {
+    vi.stubEnv('WEB_ORIGIN', 'https://example.com')
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+
+    const res = await fetch(`${baseUrl}/api/v1/slack/oauth/callback?code=abc&state=forged`, {
+      redirect: 'manual',
+    })
+    expect(res.headers.get('location')).toBe(
+      'https://example.com/archive?slack=error&reason=invalid_state'
+    )
+    expect(fetchSpy).not.toHaveBeenCalledWith('https://slack.com/api/oauth.v2.access', expect.anything())
+    fetchSpy.mockRestore()
+  })
+
   it('POST /send는 발송 결과를 200으로 반환한다', async () => {
     vi.mocked(runSlackNotify).mockResolvedValue({ sent: 3, failed: 0 } as any)
 

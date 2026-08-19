@@ -27,9 +27,16 @@
   - [x] Vercel — 배포 완료 후 도메인 확인 → Railway WEB_ORIGIN, SITE_URL 업데이트
   - [x] 크론잡 동작 확인 (Railway 로그에서 KST 06~09시 파이프라인 실행 여부)
   - [x] Slack 구독 테스트 — 실 Webhook URL로 구독 등록 후 발송 확인
+- [x] Slack 앱 공개 배포 (다른 워크스페이스 구독 시 invalid_team_for_non_distributed_app 이슈)
+  - [x] OAuth state 파라미터 적용 (CSRF 방어)
+  - [x] OAuth 실패 사유를 `?reason=` 으로 전달 → UI에 원인별 안내 문구 노출
+  - [x] Slack 대시보드 — OAuth & Permissions 의 Redirect URL 을 배포 도메인(HTTPS)으로 등록
+  - [x] Slack 대시보드 — Manage Distribution 체크리스트 완료 후 Activate Public Distribution
+  - [x] 개발 워크스페이스가 아닌 다른 워크스페이스에서 설치 재검증
 
 ### p2 (추후 고도화/백로그, 1차 출시 이후)
 - [] 회원가입 및 로그인 기능 (OAuth 2.0)
 - [] 유저별 북마크(찜하기) 및 마이페이지
 - [] 실제 배너 광고 SDK (구글 애드센스 등) 탑재 및 수익화
 - [] 슬랙 봇(Slack Bot)과의 양방향 인터랙션 기능
+- [] Slack Marketplace 등록 심사 (설치 화면의 미검토 앱 배너 제거용 — 활성 워크스페이스 5개 이상 확보 후 검토)

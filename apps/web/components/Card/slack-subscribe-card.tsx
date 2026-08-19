@@ -8,16 +8,36 @@ const slackOAuthUrl = `${API_BASE}/api/v1/slack/oauth/start`;
 
 type Status = "idle" | "connected" | "error";
 
+/** 서버가 ?reason= 으로 넘겨준 Slack OAuth 실패 사유를 사람이 읽을 문장으로 바꾼다 */
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid_team_for_non_distributed_app:
+    "이 Slack 앱은 아직 공개 배포되지 않아 다른 워크스페이스에는 설치할 수 없어요.",
+  access_denied: "설치를 취소하셨어요. 다시 시도해주세요.",
+  invalid_state: "인증 세션이 만료되었어요. 다시 시도해주세요.",
+};
+
+const DEFAULT_ERROR_MESSAGE = "연동 중 오류가 발생했습니다. 다시 시도해주세요.";
+
+function readSearchParams() {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search);
+}
+
 function getInitialStatus(): Status {
-  if (typeof window === "undefined") return "idle";
-  const slack = new URLSearchParams(window.location.search).get("slack");
+  const slack = readSearchParams()?.get("slack");
   if (slack === "connected") return "connected";
   if (slack === "error") return "error";
   return "idle";
 }
 
+function getInitialErrorMessage(): string {
+  const reason = readSearchParams()?.get("reason");
+  return (reason && ERROR_MESSAGES[reason]) || DEFAULT_ERROR_MESSAGE;
+}
+
 export function SlackSubscribeCard() {
   const [status] = useState<Status>(getInitialStatus);
+  const [errorMessage] = useState<string>(getInitialErrorMessage);
 
   return (
     <div className="border rounded-lg p-6 bg-background space-y-4">
@@ -40,9 +60,7 @@ export function SlackSubscribeCard() {
             Add to Slack
           </a>
           {status === "error" && (
-            <p className="text-xs text-destructive">
-              연동 중 오류가 발생했습니다. 다시 시도해주세요.
-            </p>
+            <p className="text-xs text-destructive">{errorMessage}</p>
           )}
           <p className="text-xs text-muted-foreground">
             워크스페이스와 채널을 선택하면 자동으로 연동됩니다.

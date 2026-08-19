@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import type { Request } from 'express'
+import { randomBytes, timingSafeEqual } from 'node:crypto'
 import { prisma } from '../lib/prisma'
 import { asyncHandler } from '../lib/async-handler'
 import { runSlackNotify } from '../jobs/slack-notify'
@@ -7,12 +9,33 @@ const router = Router()
 
 const SLACK_WEBHOOK_PREFIX = 'https://hooks.slack.com/services/'
 
+/** OAuth CSRF 방어용 state — start 에서 발급한 nonce 를 쿠키에 심고 callback 에서 대조한다 */
+const STATE_COOKIE = 'slack_oauth_state'
+const STATE_COOKIE_PATH = '/api/v1/slack'
+const STATE_MAX_AGE_MS = 10 * 60 * 1000
+
 // 상수가 아니라 함수 — SERVER_URL 을 모듈 로드 시점이 아니라 요청 시점에 읽어야 한다
 const oauthRedirectUri = () =>
   `${process.env.SERVER_URL ?? 'http://localhost:4000'}/api/v1/slack/oauth/callback`
 
 function isSlackWebhookUrl(value: unknown): value is string {
   return typeof value === 'string' && value.startsWith(SLACK_WEBHOOK_PREFIX)
+}
+
+function readStateCookie(req: Request): string | null {
+  const raw = req.headers.cookie
+  if (!raw) return null
+  for (const part of raw.split(';')) {
+    const [name, ...rest] = part.trim().split('=')
+    if (name === STATE_COOKIE) return decodeURIComponent(rest.join('='))
+  }
+  return null
+}
+
+function matchesState(issued: string | null, returned: unknown): boolean {
+  if (!issued || typeof returned !== 'string') return false
+  if (issued.length !== returned.length) return false
+  return timingSafeEqual(Buffer.from(issued), Buffer.from(returned))
 }
 
 /** 신규 등록과 재구독 모두 isActive: true 로 맞춘다 */
@@ -85,19 +108,49 @@ router.get('/oauth/start', (_req, res) => {
     return res.status(500).json({ error: 'SLACK_CLIENT_ID not configured' })
   }
 
-  const redirectUri = encodeURIComponent(oauthRedirectUri())
+  const redirectUri = oauthRedirectUri()
+  const state = randomBytes(16).toString('base64url')
+
+  res.cookie(STATE_COOKIE, state, {
+    httpOnly: true,
+    // 슬랙 → 서버 리다이렉트는 top-level GET 이라 SameSite=Lax 로도 쿠키가 실려온다
+    sameSite: 'lax',
+    secure: redirectUri.startsWith('https://'),
+    maxAge: STATE_MAX_AGE_MS,
+    path: STATE_COOKIE_PATH,
+  })
+
   res.redirect(
-    `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=incoming-webhook&redirect_uri=${redirectUri}`,
+    `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=incoming-webhook&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`,
   )
 })
 
 // GET /api/v1/slack/oauth/callback — Slack OAuth 인증 콜백
 router.get('/oauth/callback', async (req, res) => {
-  const { code, error } = req.query
+  const { code, error, state } = req.query
   const webOrigin = process.env.WEB_ORIGIN ?? 'http://localhost:3000'
+  const issuedState = readStateCookie(req)
 
-  if (error || typeof code !== 'string') {
-    return res.redirect(`${webOrigin}/archive?slack=error`)
+  // 실패 사유를 웹으로 그대로 넘겨야 사용자가 무엇 때문에 막혔는지 알 수 있다
+  // (예: invalid_team_for_non_distributed_app = 앱이 아직 공개 배포되지 않음)
+  const fail = (reason: string) =>
+    res.redirect(`${webOrigin}/archive?slack=error&reason=${encodeURIComponent(reason)}`)
+
+  res.clearCookie(STATE_COOKIE, { path: STATE_COOKIE_PATH })
+
+  if (typeof error === 'string' && error) {
+    console.error('[slack-oauth] Authorization rejected:', error)
+    return fail(error)
+  }
+
+  if (typeof code !== 'string' || !code) {
+    console.error('[slack-oauth] Missing code')
+    return fail('missing_code')
+  }
+
+  if (!matchesState(issuedState, state)) {
+    console.error('[slack-oauth] State mismatch')
+    return fail('invalid_state')
   }
 
   try {
@@ -121,7 +174,7 @@ router.get('/oauth/callback', async (req, res) => {
 
     if (!data.ok || !data.incoming_webhook?.url) {
       console.error('[slack-oauth] Token exchange failed:', data.error)
-      return res.redirect(`${webOrigin}/archive?slack=error`)
+      return fail(data.error ?? 'token_exchange_failed')
     }
 
     await activateSubscriber(data.incoming_webhook.url)
@@ -137,7 +190,7 @@ router.get('/oauth/callback', async (req, res) => {
     res.redirect(`${webOrigin}/archive?slack=connected`)
   } catch (err) {
     console.error('[slack-oauth] Error:', err)
-    res.redirect(`${webOrigin}/archive?slack=error`)
+    return fail('unexpected_error')
   }
 })
 
