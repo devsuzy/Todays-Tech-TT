@@ -16,6 +16,11 @@ export type Source = {
   isActive: boolean
 }
 
+export type FeedDate = {
+  date: string
+  updatedAt: string
+}
+
 export type FeedSectionData = {
   id: number
   feedId: number

@@ -178,6 +178,28 @@ describe('feeds router', () => {
     expect(await res.json()).toEqual({ error: 'INTERNAL_ERROR' })
   })
 
+  it('GET /dates는 발행된 피드의 날짜와 수정시각만 조회한다', async () => {
+    vi.mocked(prisma.feed.findMany).mockResolvedValue([
+      { date: new Date('2026-05-20T15:00:00.000Z'), updatedAt: new Date('2026-05-21T00:00:00.000Z') },
+    ] as any)
+
+    const res = await fetch(`${baseUrl}/api/v1/feeds/dates`)
+    const arg = vi.mocked(prisma.feed.findMany).mock.calls[0][0] as any
+    expect(res.status).toBe(200)
+    expect(arg).toEqual({
+      where: { status: 'PUBLISHED' },
+      select: { date: true, updatedAt: true },
+      orderBy: { date: 'desc' },
+    })
+  })
+
+  it('GET /dates는 /:date보다 먼저 등록되어 상세 조회로 새지 않는다', async () => {
+    vi.mocked(prisma.feed.findMany).mockResolvedValue([] as any)
+
+    await fetch(`${baseUrl}/api/v1/feeds/dates`)
+    expect(vi.mocked(prisma.feed.findUnique)).not.toHaveBeenCalled()
+  })
+
   it('GET /:date는 KST 날짜를 UTC 자정으로 변환해 조회한다', async () => {
     vi.mocked(prisma.feed.findUnique).mockResolvedValue({ id: 3 } as any)
 

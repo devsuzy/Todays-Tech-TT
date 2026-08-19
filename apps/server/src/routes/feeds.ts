@@ -87,6 +87,20 @@ router.get(
   }),
 )
 
+// GET /api/v1/feeds/dates — 사이트맵 생성용 발행 피드 날짜 목록
+router.get(
+  '/dates',
+  asyncHandler(async (_req, res) => {
+    const feeds = await prisma.feed.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { date: true, updatedAt: true },
+      orderBy: { date: 'desc' },
+    })
+
+    res.json(feeds)
+  }),
+)
+
 // GET /api/v1/feeds/:date — 날짜별 피드 상세 (YYYY-MM-DD)
 router.get(
   '/:date',

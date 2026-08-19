@@ -1,4 +1,4 @@
-import type { FeedDetail, FeedListItem, Tag } from '@/types'
+import type { FeedDate, FeedDetail, FeedListItem, Tag } from '@/types'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000'
 
@@ -38,6 +38,11 @@ export async function getFeed(date: string): Promise<FeedDetail | null> {
 
 export async function getTags(): Promise<Tag[]> {
   return fetchJson<Tag[]>('/api/v1/tags', REVALIDATE_1D, [])
+}
+
+// 사이트맵용 — 발행된 피드의 날짜/수정시각만 받아온다
+export async function getFeedDates(): Promise<FeedDate[]> {
+  return fetchJson<FeedDate[]>('/api/v1/feeds/dates', REVALIDATE_1H, [])
 }
 
 export async function searchFeeds(q: string): Promise<FeedListItem[]> {

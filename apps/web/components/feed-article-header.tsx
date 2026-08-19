@@ -14,7 +14,7 @@ export function FeedArticleHeader({ feed }: Props) {
       <div className="relative w-full h-56 rounded-xl overflow-hidden mb-6 md:h-80">
         <Image
           src={feed.article?.ogImage || "/images/thumbnail-default-img-1.png"}
-          alt=""
+          alt={feed.article?.title ?? "기술 아티클 대표 이미지"}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 672px"

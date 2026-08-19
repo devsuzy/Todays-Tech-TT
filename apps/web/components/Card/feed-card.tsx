@@ -18,7 +18,7 @@ export function FeedCard({ feed }: Props) {
         <div className="relative w-full h-44">
           <Image
             src={feed.article?.ogImage || "/images/thumbnail-default-img-1.png"}
-            alt=""
+            alt={firstSection ? `${firstSection.title} 썸네일` : "기술 아티클 썸네일"}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 680px"
