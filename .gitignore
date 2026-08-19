@@ -26,3 +26,6 @@ yarn-error.log*
 
 # claude code
 .bkit/
+.claude/
+.claude-plugin/
+plugins/
